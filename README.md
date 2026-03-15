@@ -161,6 +161,8 @@ Describe any role and Summon will derive the agent from first principles.
 
 ## Self-Evolving Agents
 
+> The concept of [self-evolving AI agents](https://arxiv.org/abs/2507.21046) — systems that adaptively reason, act, and evolve in real time — addresses the critical bottleneck that LLM-based agents remain fundamentally static after deployment. Summon applies this principle at the engineering workflow level.
+
 Summon agents aren't static — they **improve over time** through a shared knowledge base at `.claude/evolution/`.
 
 ### How It Works
@@ -176,6 +178,8 @@ Summon agents aren't static — they **improve over time** through a shared know
 - All changes require user approval — agents never self-modify silently
 
 ### Compound Engineering
+
+> [Compound engineering](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents) is a methodology coined by [Dan Shipper](https://every.to/@danshipper) and [Kieran Klaassen](https://every.to/@kieran_1355) at Every. The core idea: each unit of engineering work should make subsequent units easier — not harder. Summon implements this through cross-agent feedback loops.
 
 The real power is **cross-agent feedback loops** that create compounding value:
 
@@ -311,7 +315,9 @@ summon-skill/
 
 ## Inspiration
 
-Summon was inspired by [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) — an excellent collection of pre-built AI agent personas. Summon takes a different approach: instead of shipping agents, it **generates them from first principles** based on your actual project context.
+Summon was inspired by [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) — an excellent collection of pre-built AI agent personas by [Michael Sitarzewski](https://github.com/msitarzewski). Summon takes a different approach: instead of shipping agents, it **generates them from first principles** based on your actual project context.
+
+The self-evolving agent architecture draws from research on [self-evolving AI agents](https://arxiv.org/abs/2507.21046) and the compound learning methodology is based on [compound engineering](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents) by Dan Shipper and Kieran Klaassen at [Every](https://every.to). Agent files follow the [Claude Code custom subagents](https://code.claude.com/docs/en/sub-agents) specification.
 
 ---
 
@@ -324,6 +330,18 @@ Contributions welcome! Some ideas:
 - **Agent quality** — Share examples of generated agents that work well (or don't)
 - **Evolution patterns** — Share cross-agent feedback loops that create compounding value
 - **Multi-tool support** — Adapt generation for Cursor, Windsurf, Copilot agents
+
+---
+
+## References
+
+| Concept | Author / Origin | Link |
+| --- | --- | --- |
+| Compound Engineering | Dan Shipper & Kieran Klaassen (Every) | [every.to/chain-of-thought/compound-engineering…](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents) |
+| Self-Evolving Agents (survey) | Charles Q. et al. | [arxiv.org/abs/2507.21046](https://arxiv.org/abs/2507.21046) |
+| Agency Agents (inspiration) | Michael Sitarzewski | [github.com/msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) |
+| Claude Code Custom Subagents | Anthropic | [code.claude.com/docs/en/sub-agents](https://code.claude.com/docs/en/sub-agents) |
+| Compound Engineering Guide | Every | [every.to/guides/compound-engineering](https://every.to/guides/compound-engineering) |
 
 ---
 
