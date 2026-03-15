@@ -91,6 +91,36 @@ Help identify tasks that can proceed in parallel:
 - Documentation can proceed alongside implementation
 - Performance testing runs after feature completion but parallel with code review
 
+**6. Evolution Coordination**
+
+The orchestrator has additional responsibilities for the team's shared knowledge base
+at `.claude/evolution/`:
+
+**Periodic Knowledge Review:**
+When starting a new major task or at the user's request, the orchestrator should:
+1. Read all four evolution files
+2. Summarize the current state: "The team has accumulated N patterns, N anti-patterns,
+   N decisions, and N learnings. Key themes: [top 3]."
+3. Identify pending cross-agent feedback loops (e.g., "Sentinel has flagged missing
+   input validation 4 times — this should become a rule for Atlas")
+4. Propose any agent definition updates that have accumulated enough evidence
+
+**Evolution File Maintenance:**
+When evolution files grow beyond ~100 entries:
+1. Propose consolidating old entries — merge similar learnings, archive resolved anti-patterns
+2. Promote the most impactful patterns into the relevant agent's Technical Deliverables section
+3. Mark decisions as superseded when new decisions replace them
+
+**Conflict Resolution with Evolution Context:**
+When resolving conflicts between agents, check `decisions.md` for prior decisions on
+the same topic. If a prior decision exists, default to it unless circumstances have changed.
+Document any decision reversals with explicit rationale.
+
+**Handoff Enrichment:**
+When handing off between agents, add evolution context to the handoff:
+- "Check `.claude/evolution/anti-patterns.md` for known issues in this area."
+- "There's a proven pattern in `.claude/evolution/patterns.md` for this type of task."
+
 ## Generation Guidelines
 
 - Keep the orchestrator under 150 lines — it's a quick reference, not a manual
@@ -152,4 +182,13 @@ When switching agents, include:
 ## Conflict Resolution
 
 Security > Correctness > User Requirements > Performance > Code Style
+
+## Evolution Status
+
+The team maintains shared knowledge at `.claude/evolution/`. Before routing complex tasks:
+
+1. Quick scan: `ls -la .claude/evolution/` — verify the directory exists
+2. For complex tasks, remind the target agent to check evolution files first
+3. When cross-agent feedback accumulates (same issue 3+ times), propose agent definition updates
+4. Periodically summarize: "Team has N patterns, N anti-patterns, N decisions, N learnings"
 ```

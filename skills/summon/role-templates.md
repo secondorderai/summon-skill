@@ -56,6 +56,41 @@ questions about project goals and constraints.
 
 ---
 
+## Cross-Agent Feedback Loops
+
+The following feedback loops create compounding value across agent roles. When generating
+agents, include the relevant loops in each agent's Evolution section.
+
+### Code Reviewer → Engineers
+When the code reviewer flags the same issue 3+ times in `learnings.md` or `anti-patterns.md`,
+it should propose adding a new Critical Rule to the relevant engineering agent.
+Example: "I've flagged missing Zod validation on server actions 4 times. Propose adding to
+Atlas's Critical Rules: 'Every server action must parse input through Zod before processing.'"
+
+### QA Engineer → Engineers
+When the QA engineer finds recurring bug categories, it should document the root cause pattern
+in `anti-patterns.md` and propose a preventive rule for the relevant engineer.
+Example: "3 of the last 5 bugs were race conditions in client-side state. Propose adding to
+Pixel's Critical Rules: 'Use useTransition for all async state updates.'"
+
+### Performance Engineer → Engineers
+When the performance engineer identifies optimization patterns, it should add them to
+`patterns.md` with benchmarks so engineers adopt them by default.
+
+### Security Auditor → All Agents
+Security findings become rules. When a vulnerability is found, the anti-pattern is logged
+and a corresponding Critical Rule is proposed for the relevant agent.
+
+### Engineers → QA Engineer
+When engineers discover edge cases during implementation, they log them in `learnings.md`
+so the QA engineer can add targeted test coverage.
+
+### Any Agent → Orchestrator
+When workflow sequences prove suboptimal (e.g., skipping code review for hotfixes causes
+regressions), the discovering agent logs it and the orchestrator updates its workflow sequences.
+
+---
+
 ## Engineering Roles
 
 ### Backend Engineer
@@ -84,6 +119,12 @@ questions about project goals and constraints.
 - Database query patterns (including joins, aggregations common to the project)
 - Background job template
 - Authentication middleware pattern
+
+**Evolution Contributions:**
+- **Patterns**: API patterns, query optimizations, service layer abstractions that proved effective
+- **Anti-patterns**: Migration gotchas, data integrity issues, N+1 queries, unsafe casts
+- **Decisions**: Schema design choices, technology selections, caching strategies
+- **Reads first**: `anti-patterns.md` (avoid repeating mistakes), `patterns.md` (reuse proven approaches), `decisions.md` (respect prior architecture)
 
 ---
 
@@ -114,6 +155,12 @@ questions about project goals and constraints.
 - Layout/page composition pattern
 - Custom hook template (if React)
 
+**Evolution Contributions:**
+- **Patterns**: Component patterns, state management approaches, accessibility solutions
+- **Anti-patterns**: Accessibility traps, performance pitfalls (unnecessary re-renders, bundle bloat), server/client boundary mistakes
+- **Decisions**: Design system choices, state management strategy, styling approach
+- **Reads first**: `patterns.md` (reuse established components), `anti-patterns.md` (avoid known UI/UX traps)
+
 ---
 
 ### Fullstack Engineer
@@ -130,6 +177,11 @@ questions about project goals and constraints.
 - Type sharing between client and server
 - API contract discipline
 - End-to-end type safety approach
+
+**Evolution Contributions:** Combines Backend + Frontend contributions. Particularly valuable for:
+- **Patterns**: End-to-end type safety approaches, shared schema patterns
+- **Anti-patterns**: Type drift between client/server, broken API contracts
+- **Reads first**: All evolution files — fullstack agents benefit from both backend and frontend learnings
 
 ---
 
@@ -161,6 +213,12 @@ questions about project goals and constraints.
 - Prompt template management (if LLM)
 - Batch processing pattern with error handling
 
+**Evolution Contributions:**
+- **Patterns**: Inference optimizations, prompt engineering patterns, data pipeline improvements
+- **Anti-patterns**: Model serving failures, data quality issues, cost overruns
+- **Decisions**: Model selections, evaluation methodology, infrastructure sizing
+- **Reads first**: `decisions.md` (prior model/infra choices), `patterns.md` (proven ML approaches)
+
 ---
 
 ### DevOps / Infrastructure Engineer
@@ -190,6 +248,12 @@ questions about project goals and constraints.
 - Dockerfile best practices for the project's stack
 - Environment configuration pattern
 
+**Evolution Contributions:**
+- **Patterns**: IaC patterns, deployment strategies, monitoring configurations that caught real issues
+- **Anti-patterns**: Infrastructure misconfigurations, deployment failures, security gaps
+- **Decisions**: Cloud architecture choices, scaling strategies, cost-performance tradeoffs
+- **Reads first**: `decisions.md` (infrastructure constraints), `anti-patterns.md` (avoid past deployment failures)
+
 ---
 
 ### Data Engineer
@@ -210,6 +274,12 @@ questions about project goals and constraints.
 - Backfill procedures
 - Cost-aware query patterns (partition pruning, clustering)
 - Lineage tracking
+
+**Evolution Contributions:**
+- **Patterns**: Pipeline patterns, transformation approaches, data quality checks that caught issues
+- **Anti-patterns**: Pipeline failures, schema evolution mistakes, backfill disasters
+- **Decisions**: Warehouse architecture, partitioning strategies, tool selections
+- **Reads first**: `decisions.md` (data architecture constraints), `anti-patterns.md` (avoid pipeline failure modes)
 
 ---
 
@@ -241,6 +311,13 @@ questions about project goals and constraints.
 - E2E test template (with page object pattern if applicable)
 - Test factory/fixture pattern
 - Custom matcher/assertion patterns
+
+**Evolution Contributions:**
+- **Anti-patterns**: Recurring bug categories with root cause analysis, flaky test causes
+- **Patterns**: Test strategies that caught real bugs, factory patterns, E2E flows
+- **Learnings**: Root cause analyses that reveal gaps in engineering agents' rules
+- **Reads first**: `anti-patterns.md` (prioritize coverage for known failure modes), `learnings.md` (engineer edge cases to test)
+- **Cross-agent feedback**: When the same bug class appears 3+ times, propose a preventive Critical Rule for the relevant engineering agent
 
 ---
 
@@ -274,6 +351,13 @@ questions about project goals and constraints.
 - Security header configuration
 - Audit log entry pattern
 
+**Evolution Contributions:**
+- **Anti-patterns**: Vulnerabilities found (anonymized), attack vectors specific to this stack
+- **Patterns**: Security configurations that proved effective, auth patterns
+- **Learnings**: Security findings that should become rules for ALL agents
+- **Reads first**: ALL evolution files — security context requires full picture
+- **Cross-agent feedback**: Every vulnerability found becomes an anti-pattern entry AND a proposed Critical Rule for the responsible agent
+
 ---
 
 ### Code Reviewer
@@ -302,6 +386,13 @@ pragmatism with standards
 - Common anti-patterns to flag (specific to the project's stack)
 - Refactoring suggestions with before/after examples
 
+**Evolution Contributions:**
+- **Anti-patterns**: Recurring review findings (the issues that keep appearing across PRs)
+- **Patterns**: Code patterns that consistently pass review cleanly
+- **Learnings**: Review findings that reveal gaps in engineering agents' rules
+- **Reads first**: `anti-patterns.md` (focus reviews on known problem areas), `patterns.md` (recognize and encourage good patterns)
+- **Cross-agent feedback**: When the same review comment appears 3+ times, propose a new Critical Rule for the relevant engineering agent. This is the primary compound engineering loop.
+
 ---
 
 ### Performance Engineer
@@ -324,6 +415,13 @@ measures before and after
 - Bundle size budgets and monitoring
 - Memory leak detection patterns
 - Caching invalidation discipline
+
+**Evolution Contributions:**
+- **Patterns**: Optimization patterns with before/after benchmarks
+- **Anti-patterns**: Performance regressions and their root causes
+- **Decisions**: Performance budget allocations, caching strategy choices
+- **Reads first**: `patterns.md` (reuse proven optimizations), `decisions.md` (respect performance budgets)
+- **Cross-agent feedback**: Optimization patterns should be added to `patterns.md` with benchmarks so engineers adopt them by default
 
 ---
 
@@ -349,6 +447,12 @@ measures before and after
 - Data consistency approach (eventual vs strong, saga patterns)
 - Decision documentation (ADR format)
 
+**Evolution Contributions:**
+- **Decisions**: ALL architectural decisions with full rationale — this is the architect's primary evolution contribution
+- **Patterns**: System-level patterns (service boundaries, communication patterns, deployment strategies)
+- **Learnings**: Scalability insights, integration lessons learned
+- **Reads first**: Read ALL of `decisions.md` before proposing new architecture — maintain consistency. Check `learnings.md` from engineering agents for ground-truth on what actually works.
+
 ---
 
 ### Tech Lead
@@ -371,6 +475,13 @@ thinks about the team not just the code
 - Code ownership and CODEOWNERS policy
 - Technical debt tracking and prioritization
 - Incident response and post-mortem process
+
+**Evolution Contributions:**
+- **Decisions**: Process decisions, convention choices, tooling selections
+- **Patterns**: Effective team workflows, onboarding approaches
+- **Learnings**: What worked/didn't in team processes
+- **Reads first**: ALL evolution files — tech lead needs the full picture to make good process decisions
+- **Cross-agent feedback**: Responsible for periodically reviewing evolution files and proposing agent definition updates when patterns accumulate
 
 ---
 
@@ -399,3 +510,9 @@ thinks about the team not just the code
 - Error response examples
 - Pagination implementation
 - OpenAPI/schema definition template
+
+**Evolution Contributions:**
+- **Decisions**: API versioning choices, contract design principles, deprecation timelines
+- **Patterns**: API design patterns that proved consumer-friendly
+- **Anti-patterns**: Breaking changes that caused issues, confusing API designs
+- **Reads first**: `decisions.md` (API consistency), `patterns.md` (proven API designs), `anti-patterns.md` (avoid past API mistakes)

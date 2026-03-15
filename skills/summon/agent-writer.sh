@@ -25,6 +25,20 @@ FILEPATH="${AGENTS_DIR}/${FILENAME}"
 # Create agents directory
 mkdir -p "$AGENTS_DIR"
 
+# Bootstrap evolution directory if it doesn't exist
+EVOLUTION_DIR=".claude/evolution"
+mkdir -p "$EVOLUTION_DIR"
+for f in learnings.md decisions.md patterns.md anti-patterns.md; do
+    if [[ ! -f "${EVOLUTION_DIR}/${f}" ]]; then
+        {
+            echo "# Team ${f%.md}"
+            echo ""
+            echo "Shared knowledge base maintained by all agents. Newest entries at the bottom."
+            echo ""
+        } > "${EVOLUTION_DIR}/${f}"
+    fi
+done
+
 # Check for existing file
 if [[ -f "$FILEPATH" ]]; then
     echo "⚠️  Agent file already exists: ${FILEPATH}"
@@ -46,3 +60,4 @@ fi
 LINES=$(wc -l < "$FILEPATH")
 echo "✅ Agent written: ${FILEPATH} (${LINES} lines)"
 echo "   Claude Code will pick this up in new sessions."
+echo "   Evolution knowledge base: ${EVOLUTION_DIR}/"

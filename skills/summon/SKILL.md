@@ -171,6 +171,19 @@ agent's critical rules, workflows, and code patterns.
 Keep the interview focused — 3-5 questions per phase, not an interrogation. Infer what
 you can, confirm what you must, and ask only what you genuinely need.
 
+### Evolution & Learning Questions (ask for all roles)
+
+After role-specific domain drilling, ask these questions to seed the team's shared knowledge:
+
+- **What mistakes keep recurring in this codebase?** (seeds initial anti-patterns)
+- **Are there any architectural decisions that are set in stone?** (seeds initial decisions)
+- **What patterns have proven most effective here?** (seeds initial patterns)
+- **How important is institutional knowledge for this project?** (calibrates evolution
+  aggressiveness — solo projects need less, teams need more)
+
+If the user provides answers, use them to pre-populate the evolution files during generation
+(see "Evolution Bootstrap" below).
+
 ## Agent File Structure
 
 Generate each agent as a single `.md` file placed in `.claude/agents/`. The file follows
@@ -221,6 +234,67 @@ methodology — how it approaches work, in what order, with what checkpoints.}
 
 {How the agent talks — terse? detailed? asks questions first? shows examples?
 This shapes the interaction pattern.}
+
+## Evolution
+
+This agent improves over time by reading from and contributing to the team's shared
+knowledge base at `.claude/evolution/`.
+
+### Before Starting Work
+
+Read the relevant evolution files to inform your approach:
+- Check `.claude/evolution/patterns.md` — use proven patterns instead of reinventing
+- Check `.claude/evolution/anti-patterns.md` — avoid known failure modes
+- Check `.claude/evolution/decisions.md` — respect prior architectural decisions
+- Check `.claude/evolution/learnings.md` — leverage prior insights relevant to the task
+
+### After Completing Work
+
+When a task is complete (feature shipped, bug fixed, review done), capture what you learned:
+
+1. **If you discovered a reusable pattern**, append to `.claude/evolution/patterns.md`:
+   ```
+   ### [Date] [Pattern Name] (discovered by {Agent Name})
+   **Context**: When/why this pattern applies
+   **Pattern**: The concrete code or approach
+   **Why it works**: Brief rationale
+   ```
+
+2. **If something failed or caused problems**, append to `.claude/evolution/anti-patterns.md`:
+   ```
+   ### [Date] [Anti-pattern Name] (flagged by {Agent Name})
+   **What happened**: What went wrong
+   **Root cause**: Why it failed
+   **Instead do**: The correct approach
+   ```
+
+3. **If you made a significant decision**, append to `.claude/evolution/decisions.md`:
+   ```
+   ### [Date] [Decision Title] (decided by {Agent Name})
+   **Context**: What problem or question arose
+   **Decision**: What was decided
+   **Rationale**: Why this choice over alternatives
+   **Trade-offs**: What was given up
+   ```
+
+4. **If you learned something non-obvious**, append to `.claude/evolution/learnings.md`:
+   ```
+   ### [Date] [Learning Title] (by {Agent Name})
+   **Situation**: What task surfaced this learning
+   **Insight**: The key takeaway
+   **Applies to**: Which roles/tasks benefit from this
+   ```
+
+### Cross-Agent Feedback
+
+When you notice the same issue or pattern appearing 3+ times in the evolution files,
+propose a concrete change to the relevant agent's definition:
+- Recurring anti-patterns → propose a new Critical Rule for the responsible agent
+- Proven patterns → propose promoting to Technical Deliverables
+- Tell the user: "Based on [N] learnings about [topic], I recommend updating
+  [Agent]'s [section]. Here's the proposed change: [diff]. Apply it?"
+
+Never self-modify without user approval.
 ```
 
 ### Greenfield Agent Variant
@@ -280,7 +354,12 @@ After the interview is complete, generate the agent file following these princip
    it defeats the purpose of TypeScript and creates silent runtime failures that are hard
    to trace." Explaining WHY makes the rule stick.
 
-6. **For greenfield projects, guide instead of enforce.** When the project has no established
+6. **Evolution-ready.** Every agent reads from and contributes to `.claude/evolution/`,
+   creating a compounding knowledge base. Include the Evolution section in all generated
+   agents. The team gets smarter with every task — patterns compound, anti-patterns get
+   caught earlier, and architectural decisions accumulate institutional memory.
+
+7. **For greenfield projects, guide instead of enforce.** When the project has no established
    patterns, the agent should:
    - Include a "Recommended Setup" section with specific initialization steps
    - Frame rules as "establish this pattern" rather than "follow the existing pattern"
@@ -299,8 +378,29 @@ cat > .claude/agents/{filename}.md << 'AGENT_EOF'
 AGENT_EOF
 ```
 
-Then confirm to the user: "Created `.claude/agents/{filename}.md`. Claude Code will
-automatically pick this up in new sessions. Want to generate another agent or create a team?"
+### Evolution Bootstrap
+
+After writing the agent file, initialize the shared evolution directory if it doesn't exist:
+
+```bash
+mkdir -p .claude/evolution
+for f in learnings.md decisions.md patterns.md anti-patterns.md; do
+  if [ ! -f ".claude/evolution/$f" ]; then
+    echo "# Team ${f%.md}" > ".claude/evolution/$f"
+    echo "" >> ".claude/evolution/$f"
+    echo "Shared knowledge base maintained by all agents. Newest entries at the bottom." >> ".claude/evolution/$f"
+    echo "" >> ".claude/evolution/$f"
+  fi
+done
+```
+
+If the user provided answers to the Evolution & Learning Questions during the interview,
+pre-populate the relevant evolution files with those initial entries (using today's date and
+attributing to "Team Setup").
+
+Then confirm to the user: "Created `.claude/agents/{filename}.md` with evolution support.
+The team's shared knowledge base is at `.claude/evolution/`. Claude Code will automatically
+pick up this agent in new sessions. Want to generate another agent or create a team?"
 
 ## Multi-Agent Composition
 
@@ -319,6 +419,14 @@ The orchestrator is a special agent that coordinates the others. It lives at
    QA engineer writes tests for it")
 4. **Manages conflicts** — When agents have competing priorities (speed vs security,
    DRY vs readability), the orchestrator has a resolution framework
+
+When generating a multi-agent team, ask the user:
+- **Do you want agents to learn and evolve from their work?** (explain: "Agents will
+  maintain a shared knowledge base at `.claude/evolution/` — patterns that work, mistakes
+  to avoid, and architectural decisions. Each agent reads from and contributes to this
+  knowledge base, so the team gets smarter over time.")
+- If yes (default), include the Evolution section in all generated agents
+- If no, skip the Evolution section to keep agents simpler
 
 Generate the orchestrator after all individual agents are created. Its structure:
 
@@ -355,6 +463,14 @@ in this project. You understand each agent's strengths and route work accordingl
 
 {When agents disagree, how to resolve — e.g., "security concerns override velocity
 unless explicitly time-boxed by the user"}
+
+## Evolution Coordination
+
+The team maintains shared knowledge at `.claude/evolution/`. As orchestrator:
+- Before routing complex tasks, remind the target agent to check evolution files
+- Periodically summarize evolution state (entry counts, key themes, pending feedback loops)
+- When cross-agent feedback accumulates (same issue flagged 3+ times), propose agent updates
+- Manage evolution file maintenance when files grow beyond ~100 entries
 ```
 
 ## Important Reminders

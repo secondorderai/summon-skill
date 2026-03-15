@@ -6,13 +6,13 @@
 
 ## What Is Summon?
 
-Summon is a Claude Code skill that **generates stack-aware, project-specific AI agent files** through a progressive interview. Instead of shipping 100 generic agent templates, Summon understands your codebase — your framework, your ORM, your conventions — and creates agents that speak your language from day one.
+Summon is a Claude Code skill that **generates stack-aware, self-evolving AI agent files** through a progressive interview. Instead of shipping 100 generic agent templates, Summon understands your codebase — your framework, your ORM, your conventions — and creates agents that speak your language from day one.
 
-Each generated agent is a `.md` file that Claude Code autonomously picks up from `.claude/agents/`.
+Each generated agent is a `.md` file that Claude Code autonomously picks up from `.claude/agents/`. Agents maintain a **shared knowledge base** at `.claude/evolution/` — learning from every task, accumulating patterns, and proposing improvements to their own definitions over time.
 
 Works with both existing codebases and brand-new projects — if your repo is empty, Summon switches to greenfield mode and helps you plan your stack before generating agents.
 
-**Think of it as:** `npx create-agent` but it actually knows your stack.
+**Think of it as:** `npx create-agent` but it actually knows your stack — and gets smarter the more you use it.
 
 ---
 
@@ -31,6 +31,7 @@ Summon agents:
 - ✅ **Interview you** — fill gaps with targeted questions about your specific workflow and pain points
 - ✅ **Generate stack-native code patterns** — real examples in your stack, not generic pseudocode
 - ✅ **Enforce your conventions** — rules derived from your codebase, not someone else's
+- ✅ **Evolve over time** — learn from outcomes, accumulate patterns, and compound team intelligence
 
 ---
 
@@ -48,9 +49,7 @@ npx skills add secondorderai/summon-skill
 
 #### Option 2 (Manual)
 
-Manually clone and copy the skill into your Coding Agent skills directory:
-
-Claude Code
+Manually clone and copy the skill into your Claude Code skills directory:
 
 ```bash
 git clone https://github.com/secondorderai/summon-skill.git
@@ -92,14 +91,20 @@ Use the backend engineer agent to implement the new API endpoint
 
 ## What Gets Generated
 
-Each agent is a single `.md` file with this structure:
+Each agent is a single `.md` file, plus a shared evolution directory:
 
 ```
-.claude/agents/
-├── engineering-backend-engineer.md
-├── quality-security-auditor.md
-├── quality-code-reviewer.md
-└── orchestrator.md              # If you summoned a team
+.claude/
+├── agents/
+│   ├── engineering-backend-engineer.md
+│   ├── quality-security-auditor.md
+│   ├── quality-code-reviewer.md
+│   └── orchestrator.md              # If you summoned a team
+└── evolution/                       # Shared team knowledge base
+    ├── patterns.md                  # Proven approaches to reuse
+    ├── anti-patterns.md             # Mistakes to avoid
+    ├── decisions.md                 # Architectural decisions with rationale
+    └── learnings.md                 # Non-obvious insights from tasks
 ```
 
 Every agent includes:
@@ -114,6 +119,7 @@ Every agent includes:
 | **Workflow**               | Step-by-step methodology for primary tasks                       |
 | **Success Metrics**        | How to know the agent is doing its job well                      |
 | **Communication Style**    | Interaction pattern — terse, detailed, question-first            |
+| **Evolution**              | How the agent learns, contributes to shared knowledge, and proposes self-updates |
 
 ---
 
@@ -153,6 +159,48 @@ Describe any role and Summon will derive the agent from first principles.
 
 ---
 
+## Self-Evolving Agents
+
+Summon agents aren't static — they **improve over time** through a shared knowledge base at `.claude/evolution/`.
+
+### How It Works
+
+**Before each task**, agents check the evolution files for relevant prior knowledge — proven patterns to reuse, known pitfalls to avoid, and architectural decisions to respect.
+
+**After each task**, agents capture what they learned — new patterns that worked, approaches that failed, decisions made and why, non-obvious insights.
+
+**When patterns accumulate**, agents propose updates to their own definitions:
+- An anti-pattern flagged 3+ times → proposed new Critical Rule
+- A proven pattern used repeatedly → proposed addition to Technical Deliverables
+- All changes require user approval — agents never self-modify silently
+
+### Compound Engineering
+
+The real power is **cross-agent feedback loops** that create compounding value:
+
+```
+Code Reviewer finds same issue 4x  →  Proposes new rule for Backend Engineer
+QA finds recurring bug category    →  Proposes preventive rule for Frontend Engineer
+Performance Engineer finds pattern →  Adds to patterns.md for all engineers to adopt
+Security Auditor finds vuln        →  Creates anti-pattern + rule for responsible agent
+Engineers discover edge cases      →  Logged for QA to add test coverage
+```
+
+Each agent's work makes every other agent better. The team gets smarter with every task.
+
+### Evolution Entry Format
+
+Each entry follows a terse structured template:
+
+```markdown
+### [Date] [Title] (by Agent Name)
+**Context**: When/why this applies
+**Insight**: The concrete takeaway
+**Applies to**: Which roles/tasks benefit
+```
+
+---
+
 ## Multi-Agent Teams
 
 Summon can generate a coordinated team of agents with an orchestrator:
@@ -167,6 +215,7 @@ The orchestrator agent:
 - **Defines workflows** — New Feature flow, Bug Fix flow, Security Response flow
 - **Manages handoffs** — context that passes between agents
 - **Resolves conflicts** — Security > Correctness > Performance > Style
+- **Coordinates evolution** — reviews accumulated knowledge, surfaces cross-agent feedback, proposes agent updates
 
 ---
 
@@ -185,10 +234,12 @@ Phase 2: "I scanned your project. I see TypeScript, Hono, Drizzle ORM,
 Phase 3: "A few things that'll make this agent really useful:
           - How do you handle errors? (Result types, exceptions, custom?)
           - What's your testing philosophy? (Coverage target? Unit vs integration?)
-          - What do juniors always get wrong in this codebase?"
+          - What do juniors always get wrong in this codebase?
+          - What mistakes keep recurring? Any decisions set in stone?"
          → User answers
 
 Generate → .claude/agents/engineering-backend-engineer.md
+           .claude/evolution/ (shared knowledge base initialized)
 ```
 
 If the user says "just make me a code reviewer" — Summon infers from the project, generates a sensible default, and asks "anything you'd change?" No interrogation.
@@ -239,17 +290,17 @@ summon-skill/
 ├── skills/
 │   └── summon/
 │       ├── SKILL.md                  # Core skill — interview flow + generation logic
-│       ├── role-templates.md         # Per-role interview guides + default patterns
-│       ├── orchestrator-guide.md     # Multi-agent composition patterns
+│       ├── role-templates.md         # Per-role interview guides + evolution contributions
+│       ├── orchestrator-guide.md     # Multi-agent composition + evolution coordination
 │       ├── project-scanner.sh        # Auto-detect project stack
-│       └── agent-writer.sh          # Safe file writer with backup
+│       └── agent-writer.sh          # Safe file writer + evolution bootstrap
 ├── samples/
 │   └── tech-team/                    # Example generated agent team
-│       ├── orchestrator.md
+│       ├── orchestrator.md           # Includes evolution coordination
 │       ├── engineering-backend-engineer.md
 │       ├── engineering-frontend-engineer.md
 │       ├── quality-code-reviewer.md
-│       └── quality-qa-engineer.md
+│       └── quality-qa-engineer.md    # All include Evolution sections
 ├── LICENSE
 └── README.md
 ```
@@ -269,6 +320,7 @@ Contributions welcome! Some ideas:
 - **New role templates** — Add interview guides for roles not yet covered
 - **Stack detection** — Improve `project-scanner.sh` for more frameworks/tools
 - **Agent quality** — Share examples of generated agents that work well (or don't)
+- **Evolution patterns** — Share cross-agent feedback loops that create compounding value
 - **Multi-tool support** — Adapt generation for Cursor, Windsurf, Copilot agents
 
 ---
