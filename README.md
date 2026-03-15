@@ -1,9 +1,6 @@
 # ⚡ Summon
 
-> **Summon bespoke AI agents into your codebase from first principles.**
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://makeapullrequest.com)
+> **Summon a personalized team of AI agents into your codebase from first principles.**
 
 ---
 
@@ -12,6 +9,8 @@
 Summon is a Claude Code skill that **generates stack-aware, project-specific AI agent files** through a progressive interview. Instead of shipping 100 generic agent templates, Summon understands your codebase — your framework, your ORM, your conventions — and creates agents that speak your language from day one.
 
 Each generated agent is a `.md` file that Claude Code autonomously picks up from `.claude/agents/`.
+
+Works with both existing codebases and brand-new projects — if your repo is empty, Summon switches to greenfield mode and helps you plan your stack before generating agents.
 
 **Think of it as:** `npx create-agent` but it actually knows your stack.
 
@@ -39,12 +38,24 @@ Summon agents:
 
 ### 1. Install the Skill
 
+#### Options 1 (Recommended)
+
+Install with npx skills
+
 ```bash
-# Clone into your Claude Code skills directory
-git clone https://github.com/YOUR_USERNAME/summon.git ~/.claude/skills/summon
+npx skills add secondorderai/summon-skill
 ```
 
-Or copy the `summon/` folder into wherever your Claude Code skills live.
+#### Option 2 (Manual)
+
+Manually clone and copy the skill into your Coding Agent skills directory:
+
+Claude Code
+
+```bash
+git clone https://github.com/secondorderai/summon-skill.git
+cp -R summon-skill/skills .claude
+```
 
 ### 2. Summon an Agent
 
@@ -63,6 +74,7 @@ set up an agent team for this repo
 ```
 
 Summon will:
+
 1. **Scan your project** — detect your stack automatically
 2. **Confirm what it found** — "I see Next.js + Prisma + PostgreSQL on Vercel. Right?"
 3. **Ask role-specific questions** — error handling patterns, testing philosophy, pain points
@@ -92,16 +104,16 @@ Each agent is a single `.md` file with this structure:
 
 Every agent includes:
 
-| Section | Purpose |
-|---------|---------|
-| **Identity & Context** | Role, personality, expertise — shapes how the agent communicates |
-| **Core Mission** | What this agent exists to do, in concrete terms |
-| **Critical Rules** | Non-negotiable guardrails with explanations of WHY |
-| **Stack Context** | Your specific technologies, baked in |
-| **Technical Deliverables** | Real code patterns in your stack |
-| **Workflow** | Step-by-step methodology for primary tasks |
-| **Success Metrics** | How to know the agent is doing its job well |
-| **Communication Style** | Interaction pattern — terse, detailed, question-first |
+| Section                    | Purpose                                                          |
+| -------------------------- | ---------------------------------------------------------------- |
+| **Identity & Context**     | Role, personality, expertise — shapes how the agent communicates |
+| **Core Mission**           | What this agent exists to do, in concrete terms                  |
+| **Critical Rules**         | Non-negotiable guardrails with explanations of WHY               |
+| **Stack Context**          | Your specific technologies, baked in                             |
+| **Technical Deliverables** | Real code patterns in your stack                                 |
+| **Workflow**               | Step-by-step methodology for primary tasks                       |
+| **Success Metrics**        | How to know the agent is doing its job well                      |
+| **Communication Style**    | Interaction pattern — terse, detailed, question-first            |
 
 ---
 
@@ -109,31 +121,31 @@ Every agent includes:
 
 ### ⚙️ Engineering
 
-| Role | Best For |
-|------|----------|
-| Backend Engineer | API development, database queries, server logic |
-| Frontend Engineer | Components, styling, state management, UX |
-| Fullstack Engineer | End-to-end features, type-safe API integration |
-| AI/ML Engineer | Model serving, data pipelines, LLM integration |
-| DevOps Engineer | CI/CD, infrastructure, deployment, monitoring |
-| Data Engineer | Pipelines, transformations, warehouse management |
+| Role               | Best For                                         |
+| ------------------ | ------------------------------------------------ |
+| Backend Engineer   | API development, database queries, server logic  |
+| Frontend Engineer  | Components, styling, state management, UX        |
+| Fullstack Engineer | End-to-end features, type-safe API integration   |
+| AI/ML Engineer     | Model serving, data pipelines, LLM integration   |
+| DevOps Engineer    | CI/CD, infrastructure, deployment, monitoring    |
+| Data Engineer      | Pipelines, transformations, warehouse management |
 
 ### 🔍 Quality
 
-| Role | Best For |
-|------|----------|
-| QA Engineer | Test strategy, coverage gaps, test automation |
-| Security Auditor | Threat modeling, vuln assessment, secure code review |
-| Code Reviewer | PR reviews, standards enforcement, refactoring |
-| Performance Engineer | Profiling, optimization, load testing, budgets |
+| Role                 | Best For                                             |
+| -------------------- | ---------------------------------------------------- |
+| QA Engineer          | Test strategy, coverage gaps, test automation        |
+| Security Auditor     | Threat modeling, vuln assessment, secure code review |
+| Code Reviewer        | PR reviews, standards enforcement, refactoring       |
+| Performance Engineer | Profiling, optimization, load testing, budgets       |
 
 ### 🏗️ Product & Architecture
 
-| Role | Best For |
-|------|----------|
-| System Architect | Service boundaries, scaling strategy, tech debt |
-| Tech Lead | Team standards, decision docs, process design |
-| API Designer | Contract-first design, versioning, documentation |
+| Role             | Best For                                         |
+| ---------------- | ------------------------------------------------ |
+| System Architect | Service boundaries, scaling strategy, tech debt  |
+| Tech Lead        | Team standards, decision docs, process design    |
+| API Designer     | Contract-first design, versioning, documentation |
 
 ### 🤖 Custom
 
@@ -150,6 +162,7 @@ summon a team: backend engineer, code reviewer, and QA engineer
 ```
 
 The orchestrator agent:
+
 - **Routes tasks** — decides which agent handles what
 - **Defines workflows** — New Feature flow, Bug Fix flow, Security Response flow
 - **Manages handoffs** — context that passes between agents
@@ -180,6 +193,28 @@ Generate → .claude/agents/engineering-backend-engineer.md
 
 If the user says "just make me a code reviewer" — Summon infers from the project, generates a sensible default, and asks "anything you'd change?" No interrogation.
 
+### Greenfield Project
+
+```
+Phase 1: "What kind of agent do you need?"
+         → Backend Engineer
+
+Phase 2: "This looks like a fresh project. What are you planning to build?"
+         → "A REST API for a SaaS product, probably in TypeScript"
+         "Any framework preference? For TypeScript APIs, Hono and Fastify are
+          both great lightweight options, or NestJS if you want batteries-included."
+         → "Hono sounds good, with PostgreSQL"
+
+Phase 3: "A few things to shape the agent:
+          - Solo project or team?
+          - What scale are you expecting? (hobby / MVP / production)
+          - Any hard constraints? (hosting, budget, compliance)"
+         → User answers
+
+Generate → .claude/agents/engineering-backend-engineer.md
+           (includes Recommended Setup + First Steps sections)
+```
+
 ---
 
 ## Project Scanner
@@ -193,20 +228,28 @@ Summon ships a `project-scanner.sh` that auto-detects:
 - **CI/CD** — GitHub Actions, GitLab CI, CircleCI
 - **Testing** — Vitest, Jest, Playwright, Cypress, Pytest
 - **Conventions** — CLAUDE.md, .cursorrules, ESLint, Prettier, existing agents
+- **Project Status** — Detects whether the project is greenfield (empty/new) or existing, and adapts the interview flow accordingly
 
 ---
 
 ## Skill Structure
 
 ```
-summon/
-├── SKILL.md                          # Core skill — interview flow + generation logic
-├── references/
-│   ├── role-templates.md             # Per-role interview guides + default patterns
-│   └── orchestrator-guide.md         # Multi-agent composition patterns
-├── scripts/
-│   ├── project-scanner.sh            # Auto-detect project stack
-│   └── agent-writer.sh              # Safe file writer with backup
+summon-skill/
+├── skills/
+│   └── summon/
+│       ├── SKILL.md                  # Core skill — interview flow + generation logic
+│       ├── role-templates.md         # Per-role interview guides + default patterns
+│       ├── orchestrator-guide.md     # Multi-agent composition patterns
+│       ├── project-scanner.sh        # Auto-detect project stack
+│       └── agent-writer.sh          # Safe file writer with backup
+├── samples/
+│   └── tech-team/                    # Example generated agent team
+│       ├── orchestrator.md
+│       ├── engineering-backend-engineer.md
+│       ├── engineering-frontend-engineer.md
+│       ├── quality-code-reviewer.md
+│       └── quality-qa-engineer.md
 ├── LICENSE
 └── README.md
 ```
@@ -232,4 +275,5 @@ Contributions welcome! Some ideas:
 
 ## License
 
-MIT — Use freely, fork freely, summon freely.
+[MIT](https://opensource.org/licenses/MIT) — Use freely, fork freely, summon freely.  
+[PRs Welcome](https://makeapullrequest.com)

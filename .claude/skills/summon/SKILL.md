@@ -44,6 +44,7 @@ The skill follows a progressive interview flow:
 Ask the user what role they need. Present the three categories:
 
 **Engineering Roles:**
+
 - Backend Engineer
 - Frontend Engineer
 - Fullstack Engineer
@@ -52,12 +53,14 @@ Ask the user what role they need. Present the three categories:
 - Data Engineer
 
 **Quality Roles:**
+
 - QA Engineer / Test Specialist
 - Security Auditor
 - Code Reviewer
 - Performance Engineer
 
 **Product & Architecture Roles:**
+
 - System Architect
 - Tech Lead
 - API Designer
@@ -115,6 +118,7 @@ Now ask role-specific questions that shape the agent's behavior. These determine
 agent's critical rules, workflows, and code patterns.
 
 **For Engineering roles, ask about:**
+
 - Code conventions and style (naming, file structure, import patterns)
 - Error handling philosophy (Result types? Exceptions? Error boundaries?)
 - Logging and observability patterns
@@ -123,6 +127,7 @@ agent's critical rules, workflows, and code patterns.
 - Key pain points ("what do juniors always get wrong in this codebase?")
 
 **For Quality roles, ask about:**
+
 - What kinds of bugs ship most often?
 - Current test coverage and gaps
 - Review bottlenecks (what takes longest in code review?)
@@ -131,6 +136,7 @@ agent's critical rules, workflows, and code patterns.
 - What does "production ready" mean for this project?
 
 **For Product & Architecture roles, ask about:**
+
 - System boundaries and ownership model
 - Decision-making process for technical choices
 - Scalability targets and current bottlenecks
@@ -144,7 +150,7 @@ you can, confirm what you must, and ask only what you genuinely need.
 ## Agent File Structure
 
 Generate each agent as a single `.md` file placed in `.claude/agents/`. The file follows
-this structure (derived from the agency-agents pattern but adapted for Claude Code):
+this structure (derived from the agency agents pattern but adapted for Claude Code):
 
 ```markdown
 # {Role Title}
@@ -198,6 +204,7 @@ This shapes the interaction pattern.}
 Agent files should be named: `{category}-{role-slug}.md`
 
 Examples:
+
 - `engineering-backend-engineer.md`
 - `quality-security-auditor.md`
 - `architecture-system-architect.md`
@@ -280,10 +287,11 @@ in this project. You understand each agent's strengths and route work accordingl
 ## Workflow Sequences
 
 {Common multi-agent workflows, e.g.:
+
 - New Feature: Architect → Backend → Frontend → Code Reviewer → QA
 - Bug Fix: QA (reproduce) → relevant Engineer → Code Reviewer
 - Security Incident: Security Auditor → Backend → DevOps
-}
+  }
 
 ## Handoff Protocol
 
