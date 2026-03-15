@@ -109,16 +109,16 @@ Each agent is a single `.md` file, plus a shared evolution directory:
 
 Every agent includes:
 
-| Section                    | Purpose                                                          |
-| -------------------------- | ---------------------------------------------------------------- |
-| **Identity & Context**     | Role, personality, expertise — shapes how the agent communicates |
-| **Core Mission**           | What this agent exists to do, in concrete terms                  |
-| **Critical Rules**         | Non-negotiable guardrails with explanations of WHY               |
-| **Stack Context**          | Your specific technologies, baked in                             |
-| **Technical Deliverables** | Real code patterns in your stack                                 |
-| **Workflow**               | Step-by-step methodology for primary tasks                       |
-| **Success Metrics**        | How to know the agent is doing its job well                      |
-| **Communication Style**    | Interaction pattern — terse, detailed, question-first            |
+| Section                    | Purpose                                                                          |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| **Identity & Context**     | Role, personality, expertise — shapes how the agent communicates                 |
+| **Core Mission**           | What this agent exists to do, in concrete terms                                  |
+| **Critical Rules**         | Non-negotiable guardrails with explanations of WHY                               |
+| **Stack Context**          | Your specific technologies, baked in                                             |
+| **Technical Deliverables** | Real code patterns in your stack                                                 |
+| **Workflow**               | Step-by-step methodology for primary tasks                                       |
+| **Success Metrics**        | How to know the agent is doing its job well                                      |
+| **Communication Style**    | Interaction pattern — terse, detailed, question-first                            |
 | **Evolution**              | How the agent learns, contributes to shared knowledge, and proposes self-updates |
 
 ---
@@ -170,6 +170,7 @@ Summon agents aren't static — they **improve over time** through a shared know
 **After each task**, agents capture what they learned — new patterns that worked, approaches that failed, decisions made and why, non-obvious insights.
 
 **When patterns accumulate**, agents propose updates to their own definitions:
+
 - An anti-pattern flagged 3+ times → proposed new Critical Rule
 - A proven pattern used repeatedly → proposed addition to Technical Deliverables
 - All changes require user approval — agents never self-modify silently
@@ -194,6 +195,7 @@ Each entry follows a terse structured template:
 
 ```markdown
 ### [Date] [Title] (by Agent Name)
+
 **Context**: When/why this applies
 **Insight**: The concrete takeaway
 **Applies to**: Which roles/tasks benefit
@@ -327,5 +329,4 @@ Contributions welcome! Some ideas:
 
 ## License
 
-[MIT](https://opensource.org/licenses/MIT) — Use freely, fork freely, summon freely.  
-[PRs Welcome](https://makeapullrequest.com)
+[MIT](https://opensource.org/licenses/MIT) — Use freely, fork freely, summon freely.
