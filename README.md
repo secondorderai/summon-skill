@@ -313,7 +313,7 @@ summon-skill/
 
 ---
 
-## Inspiration
+##
 
 Summon was inspired by [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) — an excellent collection of pre-built AI agent personas by [Michael Sitarzewski](https://github.com/msitarzewski). Summon takes a different approach: instead of shipping agents, it **generates them from first principles** based on your actual project context.
 
@@ -335,13 +335,13 @@ Contributions welcome! Some ideas:
 
 ## References
 
-| Concept | Author / Origin | Link |
-| --- | --- | --- |
-| Compound Engineering | Dan Shipper & Kieran Klaassen (Every) | [every.to/chain-of-thought/compound-engineering…](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents) |
-| Self-Evolving Agents (survey) | Charles Q. et al. | [arxiv.org/abs/2507.21046](https://arxiv.org/abs/2507.21046) |
-| Agency Agents (inspiration) | Michael Sitarzewski | [github.com/msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) |
-| Claude Code Custom Subagents | Anthropic | [code.claude.com/docs/en/sub-agents](https://code.claude.com/docs/en/sub-agents) |
-| Compound Engineering Guide | Every | [every.to/guides/compound-engineering](https://every.to/guides/compound-engineering) |
+| Concept                       | Author / Origin                       | Link                                                                                                                                  |
+| ----------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Compound Engineering          | Dan Shipper & Kieran Klaassen (Every) | [every.to/chain-of-thought/compound-engineering…](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents) |
+| Self-Evolving Agents (survey) | Charles Q. et al.                     | [arxiv.org/abs/2507.21046](https://arxiv.org/abs/2507.21046)                                                                          |
+| Agency Agents (inspiration)   | Michael Sitarzewski                   | [github.com/msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents)                                                |
+| Claude Code Custom Subagents  | Anthropic                             | [code.claude.com/docs/en/sub-agents](https://code.claude.com/docs/en/sub-agents)                                                      |
+| Compound Engineering Guide    | Every                                 | [every.to/guides/compound-engineering](https://every.to/guides/compound-engineering)                                                  |
 
 ---
 

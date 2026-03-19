@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summon — Stack-aware AI agents for your codebase</title>
+  <meta name="description" content="Summon is an open-source Claude Code skill that scans your repo, interviews you progressively, and generates stack-aware AI agents that evolve with your codebase." />
+  <meta property="og:title" content="Summon — Stack-aware AI agents for your codebase" />
+  <meta property="og:description" content="Create project-native AI agents from first principles instead of relying on generic templates." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://secondorderai.github.io/summon-skill/" />
+  <meta name="theme-color" content="#0b1020" />
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-2: #0b1020;
+      --panel: rgba(12, 20, 38, 0.78);
+      --panel-2: rgba(255, 255, 255, 0.04);
+      --text: #ecf1ff;
+      --muted: #9db0d6;
+      --line: rgba(255, 255, 255, 0.1);
+      --brand: #7dd3fc;
+      --brand-2: #a78bfa;
+      --brand-3: #34d399;
+      --danger: #fca5a5;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --radius: 22px;
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(125, 211, 252, 0.18), transparent 28%),
+        radial-gradient(circle at 80% 0%, rgba(167, 139, 250, 0.18), transparent 22%),
+        radial-gradient(circle at 80% 80%, rgba(52, 211, 153, 0.14), transparent 20%),
+        linear-gradient(180deg, var(--bg), var(--bg-2));
+      min-height: 100vh;
+      line-height: 1.55;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+
+    .nav-wrap {
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(14px);
+      background: rgba(7, 17, 31, 0.68);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: 72px; gap: 24px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 0.2px;
+    }
+    .brand-mark {
+      width: 38px; height: 38px; border-radius: 12px;
+      background:
+        linear-gradient(135deg, rgba(125, 211, 252, 0.95), rgba(167, 139, 250, 0.95));
+      color: #06111d;
+      display: grid; place-items: center; font-size: 20px; font-weight: 900;
+      box-shadow: 0 10px 30px rgba(125, 211, 252, 0.25);
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      color: var(--muted); font-size: 14px;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      border: 1px solid transparent; border-radius: 999px;
+      padding: 13px 20px; font-weight: 700; cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+      color: #07111f;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      box-shadow: 0 14px 40px rgba(125, 211, 252, 0.25);
+    }
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .hero {
+      padding: 72px 0 40px;
+    }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.15fr 0.95fr; gap: 32px; align-items: center;
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: 999px;
+      color: var(--brand); background: rgba(125, 211, 252, 0.08);
+      border: 1px solid rgba(125, 211, 252, 0.2);
+      font-size: 13px; font-weight: 700; letter-spacing: 0.2px;
+    }
+    h1 {
+      margin: 18px 0 16px; font-size: clamp(2.6rem, 6vw, 4.9rem); line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+    .hero p {
+      font-size: clamp(1.02rem, 2.4vw, 1.18rem);
+      color: var(--muted); max-width: 720px; margin: 0 0 26px;
+    }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+    .mini-proof {
+      display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 14px;
+    }
+    .mini-proof span {
+      display: inline-flex; gap: 8px; align-items: center;
+      padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .terminal {
+      position: relative;
+      background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(13, 21, 39, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 26px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .terminal::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(125, 211, 252, 0.06), transparent 26%, transparent 72%, rgba(167, 139, 250, 0.06));
+      pointer-events: none;
+    }
+    .terminal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .dots { display: flex; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.18); }
+    .term-label { color: var(--muted); font-size: 13px; }
+    pre {
+      margin: 0; white-space: pre-wrap; word-break: break-word;
+      font: 500 14px/1.7 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #d9ecff;
+    }
+    .cmd { color: #a7f3d0; }
+    .comment { color: #7d92b8; }
+    .accent { color: #93c5fd; }
+    .warn { color: #f0abfc; }
+    .copy-btn {
+      margin-top: 14px; width: 100%; border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04);
+      color: var(--text); padding: 12px 14px; font-weight: 700; cursor: pointer;
+    }
+
+    section { padding: 36px 0; }
+    .section-head { margin-bottom: 22px; }
+    .section-head h2 {
+      margin: 0 0 10px; font-size: clamp(1.8rem, 3.5vw, 3rem); letter-spacing: -0.03em;
+    }
+    .section-head p { color: var(--muted); margin: 0; max-width: 760px; }
+
+    .grid-3, .grid-2 { display: grid; gap: 18px; }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .card h3 { margin: 0 0 10px; font-size: 1.14rem; }
+    .card p, .card li { color: var(--muted); }
+    .icon {
+      width: 42px; height: 42px; border-radius: 14px; margin-bottom: 14px;
+      display: grid; place-items: center; font-size: 20px; font-weight: 700;
+      background: rgba(125, 211, 252, 0.08); border: 1px solid rgba(125, 211, 252, 0.18);
+    }
+
+    .problem-list, .feature-list, .roles { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+    .problem-list li, .feature-list li, .roles li {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .problem-list li:last-child, .feature-list li:last-child, .roles li:last-child { border-bottom: 0; }
+    .badge {
+      flex: 0 0 auto; width: 26px; height: 26px; border-radius: 999px;
+      display: grid; place-items: center; font-size: 13px; font-weight: 800;
+      margin-top: 1px;
+    }
+    .bad { background: rgba(252, 165, 165, 0.12); color: var(--danger); }
+    .good { background: rgba(52, 211, 153, 0.12); color: var(--brand-3); }
+
+    .steps { counter-reset: step; display: grid; gap: 16px; }
+    .step {
+      display: grid; grid-template-columns: 64px 1fr; gap: 18px; align-items: start;
+      padding: 18px; border-radius: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .step-num {
+      width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center;
+      font-size: 1.2rem; font-weight: 900; color: #09121f;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    }
+    .step p { margin: 8px 0 0; color: var(--muted); }
+
+    .codeblock {
+      background: rgba(3, 10, 20, 0.7); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px; padding: 18px; overflow: auto;
+    }
+
+    .kpis {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 20px;
+    }
+    .kpi {
+      padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .kpi strong { display: block; font-size: 1.5rem; letter-spacing: -0.03em; }
+    .kpi span { color: var(--muted); font-size: 14px; }
+
+    .cta {
+      padding: 48px 0 80px;
+    }
+    .cta-box {
+      position: relative; overflow: hidden;
+      padding: 28px; border-radius: 30px;
+      background: linear-gradient(135deg, rgba(125, 211, 252, 0.12), rgba(167, 139, 250, 0.12));
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: var(--shadow);
+    }
+    .cta-box::after {
+      content: ""; position: absolute; inset: auto -10% -40% auto;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(125,211,252,0.18), transparent 70%);
+      pointer-events: none;
+    }
+    footer {
+      padding: 18px 0 44px; color: var(--muted); font-size: 14px;
+    }
+    .footer-row {
+      display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+      border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid, .grid-3, .grid-2, .kpis { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 640px) {
+      .hero { padding-top: 48px; }
+      nav { min-height: 64px; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 56px; height: 56px; }
+      .card, .terminal, .cta-box { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-wrap">
+    <div class="container">
+      <nav>
+        <a class="brand" href="#top" aria-label="Summon home">
+          <span class="brand-mark">✦</span>
+          <span>Summon</span>
+        </a>
+        <div class="nav-links">
+          <a href="#problem">Why it matters</a>
+          <a href="#how">How it works</a>
+          <a href="#output">What it generates</a>
+          <a href="#roles">Roles</a>
+        </div>
+        <a class="btn btn-secondary" href="https://github.com/secondorderai/summon-skill" target="_blank" rel="noreferrer">View GitHub</a>
+      </nav>
+    </div>
+  </div>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">Open source Claude Code skill · MIT licensed</div>
+          <h1>Summon a personalized AI team into your codebase.</h1>
+          <p>
+            Generic agent templates break the moment they hit a real stack. Summon scans your repo,
+            interviews you progressively, and generates stack-aware agents that understand your framework,
+            ORM, testing style, infra, and conventions from day one.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="https://github.com/secondorderai/summon-skill" target="_blank" rel="noreferrer">Star the repo</a>
+            <a class="btn btn-secondary" href="#install">See quick start</a>
+          </div>
+          <div class="mini-proof">
+            <span>⚙️ Existing repos + greenfield projects</span>
+            <span>🧠 Shared evolution memory</span>
+            <span>🧩 Specialist agents + orchestrator</span>
+          </div>
+        </div>
+
+        <div class="terminal" aria-label="terminal demo">
+          <div class="terminal-top">
+            <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="term-label">summon-demo.sh</div>
+          </div>
+          <pre><span class="comment"># Install the skill</span>
+<span class="cmd">npx skills add secondorderai/summon-skill</span>
+
+<span class="comment"># In your repo</span>
+<span class="cmd">summon a backend engineer for this project</span>
+
+<span class="comment"># Summon scans the codebase and confirms context</span>
+<span class="accent">→ I see Next.js + Prisma + PostgreSQL on Vercel. Right?</span>
+
+<span class="comment"># Then it generates stack-native agents</span>
+<span class="warn">.claude/agents/engineering-backend-engineer.md</span>
+<span class="warn">.claude/agents/quality-code-reviewer.md</span>
+<span class="warn">.claude/evolution/patterns.md</span>
+<span class="warn">.claude/evolution/decisions.md</span></pre>
+          <button class="copy-btn" id="copyInstall">Copy install command</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem">
+      <div class="container">
+        <div class="section-head">
+          <h2>Why generic AI agents are not enough</h2>
+          <p>
+            A backend template that assumes Express is not much help inside a Hono + Drizzle + Cloudflare Workers repo.
+            Summon starts from your codebase, not from a generic persona library.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="icon">✕</div>
+            <h3>Generic templates</h3>
+            <ul class="problem-list">
+              <li><span class="badge bad">✕</span><div>Suggest the wrong ORM patterns, query builder, or raw SQL.</div></li>
+              <li><span class="badge bad">✕</span><div>Ignore your error handling style and introduce inconsistency.</div></li>
+              <li><span class="badge bad">✕</span><div>Write tests that do not fit your framework or cannot run in CI.</div></li>
+              <li><span class="badge bad">✕</span><div>Give infra advice that does not match your deployment model.</div></li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="icon">✓</div>
+            <h3>Summon agents</h3>
+            <ul class="feature-list">
+              <li><span class="badge good">✓</span><div>Scan your repo for frameworks, ORMs, databases, infra, CI/CD, and conventions.</div></li>
+              <li><span class="badge good">✓</span><div>Ask targeted questions to fill in gaps static analysis cannot infer well.</div></li>
+              <li><span class="badge good">✓</span><div>Generate stack-native patterns, guardrails, and deliverables.</div></li>
+              <li><span class="badge good">✓</span><div>Accumulate reusable knowledge in a shared evolution layer.</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="container">
+        <div class="section-head">
+          <h2>How Summon works</h2>
+          <p>
+            Summon turns a repo into a project-native AI team through a lightweight workflow that stays inspectable,
+            file-based, and versionable.
+          </p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div>
+              <h3>Scan the project</h3>
+              <p>Detect frameworks, ORMs, databases, infrastructure, CI/CD, and local conventions directly from the repo.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div>
+              <h3>Interview progressively</h3>
+              <p>Confirm what was detected and ask targeted questions about error handling, testing philosophy, workflow, and pain points.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div>
+              <h3>Generate specialist agents</h3>
+              <p>Create role-specific agent files in <code>.claude/agents/</code> with identity, mission, critical rules, stack context, workflow, and success metrics.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div>
+              <h3>Compound team intelligence</h3>
+              <p>Store patterns, anti-patterns, decisions, and learnings in <code>.claude/evolution/</code> so future work benefits from past work.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="container">
+        <div class="section-head">
+          <h2>Quick start</h2>
+          <p>One install command, then summon the specialist you need for the repo in front of you.</p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Install</h3>
+            <div class="codeblock">
+<pre>npx skills add secondorderai/summon-skill</pre>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Use</h3>
+            <div class="codeblock">
+<pre>summon a backend engineer for this project
+create a security auditor agent
+set up an agent team for this repo</pre>
+            </div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><strong>Repo-aware</strong><span>Detects your stack before it generates anything.</span></div>
+          <div class="kpi"><strong>Role-based</strong><span>Backend, frontend, QA, security, architecture, and more.</span></div>
+          <div class="kpi"><strong>Inspectable</strong><span>Outputs plain files you can review, edit, and version.</span></div>
+          <div class="kpi"><strong>Compounding</strong><span>Shared memory improves future tasks instead of resetting context.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="output">
+      <div class="container">
+        <div class="section-head">
+          <h2>What gets generated</h2>
+          <p>
+            Summon keeps the output simple and transparent: agent markdown files plus a shared evolution directory.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Generated structure</h3>
+            <div class="codeblock">
+<pre>.claude/
+├── agents/
+│   ├── engineering-backend-engineer.md
+│   ├── quality-security-auditor.md
+│   ├── quality-code-reviewer.md
+│   └── orchestrator.md
+└── evolution/
+    ├── patterns.md
+    ├── anti-patterns.md
+    ├── decisions.md
+    └── learnings.md</pre>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Inside each agent</h3>
+            <ul class="feature-list">
+              <li><span class="badge good">1</span><div><strong>Identity & context</strong><br />Role, expertise, and communication style.</div></li>
+              <li><span class="badge good">2</span><div><strong>Core mission</strong><br />What this agent exists to do in concrete terms.</div></li>
+              <li><span class="badge good">3</span><div><strong>Critical rules</strong><br />Non-negotiable guardrails with rationale.</div></li>
+              <li><span class="badge good">4</span><div><strong>Stack context</strong><br />Your specific technologies, patterns, and constraints.</div></li>
+              <li><span class="badge good">5</span><div><strong>Evolution workflow</strong><br />How the agent learns from outcomes and proposes updates.</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="roles">
+      <div class="container">
+        <div class="section-head">
+          <h2>Summon the right specialist</h2>
+          <p>
+            Use one agent or generate a coordinated team with an orchestrator. You can also describe a custom role and let Summon derive it from first principles.
+          </p>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="icon">⚙️</div>
+            <h3>Engineering</h3>
+            <ul class="roles">
+              <li><span class="badge good">•</span><div>Backend Engineer</div></li>
+              <li><span class="badge good">•</span><div>Frontend Engineer</div></li>
+              <li><span class="badge good">•</span><div>Fullstack Engineer</div></li>
+              <li><span class="badge good">•</span><div>AI/ML Engineer</div></li>
+              <li><span class="badge good">•</span><div>DevOps Engineer</div></li>
+              <li><span class="badge good">•</span><div>Data Engineer</div></li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="icon">🛡️</div>
+            <h3>Quality</h3>
+            <ul class="roles">
+              <li><span class="badge good">•</span><div>QA Engineer</div></li>
+              <li><span class="badge good">•</span><div>Security Auditor</div></li>
+              <li><span class="badge good">•</span><div>Code Reviewer</div></li>
+              <li><span class="badge good">•</span><div>Performance Engineer</div></li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="icon">🧭</div>
+            <h3>Product & Architecture</h3>
+            <ul class="roles">
+              <li><span class="badge good">•</span><div>System Architect</div></li>
+              <li><span class="badge good">•</span><div>Tech Lead</div></li>
+              <li><span class="badge good">•</span><div>API Designer</div></li>
+              <li><span class="badge good">•</span><div>Custom role from natural language</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>Built for compound engineering</h2>
+          <p>
+            The point is not just to generate agents once. The point is to make each task improve the next one.
+          </p>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="icon">📚</div>
+            <h3>Patterns</h3>
+            <p>Capture proven approaches worth reusing across future tasks and agents.</p>
+          </div>
+          <div class="card">
+            <div class="icon">🚫</div>
+            <h3>Anti-patterns</h3>
+            <p>Record repeated mistakes, failure modes, and practices the team should avoid.</p>
+          </div>
+          <div class="card">
+            <div class="icon">🧠</div>
+            <h3>Decisions & learnings</h3>
+            <p>Preserve architectural rationale and non-obvious lessons so context compounds instead of disappearing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container">
+        <div class="cta-box">
+          <div class="section-head">
+            <h2>Move from generic assistants to project-native AI teams</h2>
+            <p>
+              Summon is for developers who want agents that fit the repo they actually have, not a fake default stack.
+              Clone it, try it in a real codebase, and evolve your team from there.
+            </p>
+          </div>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="https://github.com/secondorderai/summon-skill" target="_blank" rel="noreferrer">Open the repo</a>
+            <a class="btn btn-secondary" href="https://github.com/secondorderai/summon-skill#readme" target="_blank" rel="noreferrer">Read the docs</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-row">
+      <span>Built for GitHub Pages · Single-file HTML landing page</span>
+      <span><a href="https://github.com/secondorderai/summon-skill" target="_blank" rel="noreferrer">secondorderai/summon-skill</a></span>
+    </div>
+  </footer>
+
+  <script>
+    const copyBtn = document.getElementById('copyInstall');
+    copyBtn.addEventListener('click', async () => {
+      const text = 'npx skills add secondorderai/summon-skill';
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied';
+        setTimeout(() => copyBtn.textContent = original, 1400);
+      } catch (err) {
+        copyBtn.textContent = 'Copy failed';
+        setTimeout(() => copyBtn.textContent = 'Copy install command', 1400);
+      }
+    });
+  </script>
+</body>
+</html>
