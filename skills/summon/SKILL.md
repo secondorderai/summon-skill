@@ -4,7 +4,7 @@ description: >
   Generate bespoke, stack-aware Claude Code agent files for tech teams. Creates specialized
   AI agent personas (backend, frontend, fullstack, AI/ML, DevOps, QA, security, code reviewer,
   performance engineer, system architect, tech lead) that Claude Code autonomously picks up
-  from `.claude/agents/`. Use this skill whenever the user says things like "create an agent",
+  from `.claude/skills/`. Use this skill whenever the user says things like "create an agent",
   "I need a code reviewer agent", "generate a backend agent for this project", "set up agents
   for my team", "build me a QA specialist", "create a security auditor agent", "I want a tech
   lead agent", "set up an agent team", "create agents for this repo", or any request involving
@@ -18,7 +18,7 @@ description: >
 A skill for generating bespoke, stack-aware Claude Code agent files through a progressive
 interview process. Each generated agent is a specialized AI persona with identity, personality,
 mission, critical rules, concrete code patterns, workflows, and success metrics — designed to
-be autonomously picked up by Claude Code from the project-local `.claude/agents/` directory.
+be autonomously picked up by Claude Code from the project-local `.claude/skills/` directory.
 
 ## Why This Skill Exists
 
@@ -95,7 +95,7 @@ ls -la .github/workflows/ .gitlab-ci.yml 2>/dev/null
 
 # Check for existing conventions
 cat CLAUDE.md .cursorrules .windsurfrules 2>/dev/null | head -50
-ls -la .claude/agents/ 2>/dev/null
+ls -la .claude/skills/ 2>/dev/null
 ```
 
 Present your inferences to the user: "I can see this is a TypeScript/Node.js project using
@@ -186,7 +186,7 @@ If the user provides answers, use them to pre-populate the evolution files durin
 
 ## Agent File Structure
 
-Generate each agent as a single `.md` file placed in `.claude/agents/`. The file follows
+Generate each agent as a single `.md` file placed in `.claude/skills/`. The file follows
 this structure (derived from the agency agents pattern but adapted for Claude Code):
 
 ```markdown
@@ -238,52 +238,65 @@ This shapes the interaction pattern.}
 ## Evolution
 
 This agent improves over time by reading from and contributing to the team's shared
-knowledge base at `.claude/evolution/`.
+knowledge base at `.evolution`.
 
 ### Before Starting Work
 
 Read the relevant evolution files to inform your approach:
-- Check `.claude/evolution/patterns.md` — use proven patterns instead of reinventing
-- Check `.claude/evolution/anti-patterns.md` — avoid known failure modes
-- Check `.claude/evolution/decisions.md` — respect prior architectural decisions
-- Check `.claude/evolution/learnings.md` — leverage prior insights relevant to the task
+
+- Check `.evolution/patterns.md` — use proven patterns instead of reinventing
+- Check `.evolution/anti-patterns.md` — avoid known failure modes
+- Check `.evolution/decisions.md` — respect prior architectural decisions
+- Check `.evolution/learnings.md` — leverage prior insights relevant to the task
 
 ### After Completing Work
 
 When a task is complete (feature shipped, bug fixed, review done), capture what you learned:
 
-1. **If you discovered a reusable pattern**, append to `.claude/evolution/patterns.md`:
-   ```
-   ### [Date] [Pattern Name] (discovered by {Agent Name})
-   **Context**: When/why this pattern applies
-   **Pattern**: The concrete code or approach
-   **Why it works**: Brief rationale
-   ```
+1. **If you discovered a reusable pattern**, append to `.evolution/patterns.md`:
+```
 
-2. **If something failed or caused problems**, append to `.claude/evolution/anti-patterns.md`:
-   ```
-   ### [Date] [Anti-pattern Name] (flagged by {Agent Name})
-   **What happened**: What went wrong
-   **Root cause**: Why it failed
-   **Instead do**: The correct approach
-   ```
+### [Date] [Pattern Name] (discovered by {Agent Name})
 
-3. **If you made a significant decision**, append to `.claude/evolution/decisions.md`:
-   ```
-   ### [Date] [Decision Title] (decided by {Agent Name})
-   **Context**: What problem or question arose
-   **Decision**: What was decided
-   **Rationale**: Why this choice over alternatives
-   **Trade-offs**: What was given up
-   ```
+**Context**: When/why this pattern applies
+**Pattern**: The concrete code or approach
+**Why it works**: Brief rationale
 
-4. **If you learned something non-obvious**, append to `.claude/evolution/learnings.md`:
-   ```
-   ### [Date] [Learning Title] (by {Agent Name})
-   **Situation**: What task surfaced this learning
-   **Insight**: The key takeaway
-   **Applies to**: Which roles/tasks benefit from this
-   ```
+```
+
+2. **If something failed or caused problems**, append to `.evolution/anti-patterns.md`:
+```
+
+### [Date] [Anti-pattern Name] (flagged by {Agent Name})
+
+**What happened**: What went wrong
+**Root cause**: Why it failed
+**Instead do**: The correct approach
+
+```
+
+3. **If you made a significant decision**, append to `.evolution/decisions.md`:
+```
+
+### [Date] [Decision Title] (decided by {Agent Name})
+
+**Context**: What problem or question arose
+**Decision**: What was decided
+**Rationale**: Why this choice over alternatives
+**Trade-offs**: What was given up
+
+```
+
+4. **If you learned something non-obvious**, append to `.evolution/learnings.md`:
+```
+
+### [Date] [Learning Title] (by {Agent Name})
+
+**Situation**: What task surfaced this learning
+**Insight**: The key takeaway
+**Applies to**: Which roles/tasks benefit from this
+
+```
 
 ### Cross-Agent Feedback
 
@@ -292,7 +305,7 @@ propose a concrete change to the relevant agent's definition:
 - Recurring anti-patterns → propose a new Critical Rule for the responsible agent
 - Proven patterns → propose promoting to Technical Deliverables
 - Tell the user: "Based on [N] learnings about [topic], I recommend updating
-  [Agent]'s [section]. Here's the proposed change: [diff]. Apply it?"
+[Agent]'s [section]. Here's the proposed change: [diff]. Apply it?"
 
 Never self-modify without user approval.
 ```
@@ -354,7 +367,7 @@ After the interview is complete, generate the agent file following these princip
    it defeats the purpose of TypeScript and creates silent runtime failures that are hard
    to trace." Explaining WHY makes the rule stick.
 
-6. **Evolution-ready.** Every agent reads from and contributes to `.claude/evolution/`,
+6. **Evolution-ready.** Every agent reads from and contributes to `.evolution`,
    creating a compounding knowledge base. Include the Evolution section in all generated
    agents. The team gets smarter with every task — patterns compound, anti-patterns get
    caught earlier, and architectural decisions accumulate institutional memory.
@@ -371,9 +384,9 @@ After the interview is complete, generate the agent file following these princip
 After generating, write the file:
 
 ```bash
-mkdir -p .claude/agents
+mkdir -p .claude/skills
 # Write the agent file
-cat > .claude/agents/{filename}.md << 'AGENT_EOF'
+cat > .claude/skills/{filename}.md << 'AGENT_EOF'
 {generated content}
 AGENT_EOF
 ```
@@ -383,13 +396,13 @@ AGENT_EOF
 After writing the agent file, initialize the shared evolution directory if it doesn't exist:
 
 ```bash
-mkdir -p .claude/evolution
+mkdir -p .evolution
 for f in learnings.md decisions.md patterns.md anti-patterns.md; do
-  if [ ! -f ".claude/evolution/$f" ]; then
-    echo "# Team ${f%.md}" > ".claude/evolution/$f"
-    echo "" >> ".claude/evolution/$f"
-    echo "Shared knowledge base maintained by all agents. Newest entries at the bottom." >> ".claude/evolution/$f"
-    echo "" >> ".claude/evolution/$f"
+  if [ ! -f ".evolution/$f" ]; then
+    echo "# Team ${f%.md}" > ".evolution/$f"
+    echo "" >> ".evolution/$f"
+    echo "Shared knowledge base maintained by all agents. Newest entries at the bottom." >> ".evolution/$f"
+    echo "" >> ".evolution/$f"
   fi
 done
 ```
@@ -398,8 +411,8 @@ If the user provided answers to the Evolution & Learning Questions during the in
 pre-populate the relevant evolution files with those initial entries (using today's date and
 attributing to "Team Setup").
 
-Then confirm to the user: "Created `.claude/agents/{filename}.md` with evolution support.
-The team's shared knowledge base is at `.claude/evolution/`. Claude Code will automatically
+Then confirm to the user: "Created `.claude/skills/{filename}.md` with evolution support.
+The team's shared knowledge base is at `.evolution`. Claude Code will automatically
 pick up this agent in new sessions. Want to generate another agent or create a team?"
 
 ## Multi-Agent Composition
@@ -410,7 +423,7 @@ full interview for each, but reuse stack context), then generate an orchestrator
 ### The Orchestrator Agent
 
 The orchestrator is a special agent that coordinates the others. It lives at
-`.claude/agents/orchestrator.md` and:
+`.claude/skills/orchestrator.md` and:
 
 1. **Knows the roster** — Lists all available agents with their specialties
 2. **Routes tasks** — Given a task, recommends which agent(s) to activate
@@ -421,8 +434,9 @@ The orchestrator is a special agent that coordinates the others. It lives at
    DRY vs readability), the orchestrator has a resolution framework
 
 When generating a multi-agent team, ask the user:
+
 - **Do you want agents to learn and evolve from their work?** (explain: "Agents will
-  maintain a shared knowledge base at `.claude/evolution/` — patterns that work, mistakes
+  maintain a shared knowledge base at `.evolution` — patterns that work, mistakes
   to avoid, and architectural decisions. Each agent reads from and contributes to this
   knowledge base, so the team gets smarter over time.")
 - If yes (default), include the Evolution section in all generated agents
@@ -466,7 +480,8 @@ unless explicitly time-boxed by the user"}
 
 ## Evolution Coordination
 
-The team maintains shared knowledge at `.claude/evolution/`. As orchestrator:
+The team maintains shared knowledge at `.evolution`. As orchestrator:
+
 - Before routing complex tasks, remind the target agent to check evolution files
 - Periodically summarize evolution state (entry counts, key themes, pending feedback loops)
 - When cross-agent feedback accumulates (same issue flagged 3+ times), propose agent updates
@@ -475,7 +490,7 @@ The team maintains shared knowledge at `.claude/evolution/`. As orchestrator:
 
 ## Important Reminders
 
-- Always write to `.claude/agents/` in the project root, never to `~/.claude/agents/`
+- Always write to `.claude/skills/` in the project root, never to `~/.claude/skills/`
 - Each agent is a standalone `.md` file — no YAML frontmatter needed for Claude Code agents
 - Keep agents under 300 lines — if they're getting longer, the scope is too broad
 - The interview is a conversation, not a form. Adapt to what the user tells you.
