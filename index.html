@@ -1,539 +1,862 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Summon — Stack-aware AI agents for your codebase</title>
-  <meta name="description" content="Summon is an open-source Claude Code skill that scans your repo, interviews you progressively, and generates stack-aware AI agents that evolve with your codebase." />
-  <meta property="og:title" content="Summon — Stack-aware AI agents for your codebase" />
-  <meta property="og:description" content="Create project-native AI agents from first principles instead of relying on generic templates." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://secondorderai.github.io/summon-skill/" />
-  <meta name="theme-color" content="#ffffff" />
-  <meta name="apple-mobile-web-app-title" content="Summon" />
-  <link rel="icon" href="favicon.ico" sizes="any" />
-  <link rel="icon" type="image/svg+xml" href="icon.svg" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-  <link rel="manifest" href="site.webmanifest" />
-  <style>
-    :root {
-      --bg: #fcfbf8;
-      --panel: #ffffff;
-      --panel-alt: #f4f1ea;
-      --text: #141310;
-      --muted: #625d54;
-      --line: #e4ded1;
-      --line-strong: #cfc6b4;
-      --brand: #171411;
-      --brand-soft: #efe8dc;
-      --accent: oklch(0.68 0.15 38);
-      --accent-soft: oklch(0.94 0.03 40);
-      --accent-strong: oklch(0.56 0.16 34);
-      --accent-gold: oklch(0.8 0.11 82);
-      --accent-forest: oklch(0.54 0.09 150);
-      --shadow: 0 20px 40px rgba(20, 19, 16, 0.045);
-      --radius: 20px;
-      --max: 1120px;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Summon — Stack-aware AI agents for your codebase</title>
+    <meta
+      name="description"
+      content="Summon is an open-source Claude Code skill that scans your repo, interviews you progressively, and generates stack-aware AI agents that evolve with your codebase."
+    />
+    <meta
+      property="og:title"
+      content="Summon — Stack-aware AI agents for your codebase"
+    />
+    <meta
+      property="og:description"
+      content="Create project-native AI agents from first principles instead of relying on generic templates."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://secondorderai.github.io/summon-skill/"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-title" content="Summon" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <style>
+      :root {
+        --bg: #fcfbf8;
+        --panel: #ffffff;
+        --panel-alt: #f4f1ea;
+        --text: #141310;
+        --muted: #625d54;
+        --line: #e4ded1;
+        --line-strong: #cfc6b4;
+        --brand: #171411;
+        --brand-soft: #efe8dc;
+        --accent: oklch(0.68 0.15 38);
+        --accent-soft: oklch(0.94 0.03 40);
+        --accent-strong: oklch(0.56 0.16 34);
+        --accent-gold: oklch(0.8 0.11 82);
+        --accent-forest: oklch(0.54 0.09 150);
+        --shadow: 0 20px 40px rgba(20, 19, 16, 0.045);
+        --radius: 20px;
+        --max: 1120px;
+      }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      min-height: 100vh;
-      line-height: 1.6;
-      font-kerning: normal;
-    }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: 'Avenir Next', 'Helvetica Neue', 'Segoe UI', sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        min-height: 100vh;
+        line-height: 1.6;
+        font-kerning: normal;
+      }
 
-    a { color: inherit; text-decoration: none; }
-    .container { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
-    .reveal {
-      opacity: 0;
-      transform: translateY(18px);
-      animation: fade-up 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-    .delay-1 { animation-delay: 0.08s; }
-    .delay-2 { animation-delay: 0.16s; }
-    .delay-3 { animation-delay: 0.24s; }
-    .delay-4 { animation-delay: 0.32s; }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .container {
+        width: min(var(--max), calc(100% - 40px));
+        margin: 0 auto;
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        animation: fade-up 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      }
+      .delay-1 {
+        animation-delay: 0.08s;
+      }
+      .delay-2 {
+        animation-delay: 0.16s;
+      }
+      .delay-3 {
+        animation-delay: 0.24s;
+      }
+      .delay-4 {
+        animation-delay: 0.32s;
+      }
 
-    .nav-wrap {
-      position: sticky; top: 0; z-index: 20;
-      background: rgba(252, 251, 248, 0.92);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--line);
-    }
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      min-height: 72px; gap: 24px;
-    }
-    .brand {
-      display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: 0.01em;
-    }
-    .brand-mark {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: var(--brand-soft);
-      color: var(--text);
-      display: grid; place-items: center;
-      border: 1px solid var(--line);
-    }
-    .brand-mark svg { width: 22px; height: 22px; display: block; }
-    .nav-links {
-      display: flex; align-items: center; gap: 18px;
-      color: var(--muted); font-size: 0.73rem; letter-spacing: 0.12em; text-transform: uppercase;
-    }
-    .nav-links a {
-      position: relative;
-      padding-bottom: 0.1rem;
-    }
-    .nav-links a::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -0.2rem;
-      width: 100%;
-      height: 1px;
-      background: var(--accent);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.24s ease;
-    }
-    .nav-links a:hover { color: var(--text); }
-    .nav-links a:hover::after { transform: scaleX(1); }
+      .nav-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(252, 251, 248, 0.92);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 72px;
+        gap: 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: var(--brand-soft);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+      }
+      .brand-mark svg {
+        width: 22px;
+        height: 22px;
+        display: block;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        color: var(--muted);
+        font-size: 0.73rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .nav-links a {
+        position: relative;
+        padding-bottom: 0.1rem;
+      }
+      .nav-links a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -0.2rem;
+        width: 100%;
+        height: 1px;
+        background: var(--accent);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.24s ease;
+      }
+      .nav-links a:hover {
+        color: var(--text);
+      }
+      .nav-links a:hover::after {
+        transform: scaleX(1);
+      }
 
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-      border: 1px solid transparent; border-radius: 999px;
-      padding: 0.9rem 1.3rem; font-size: 0.92rem; font-weight: 700; letter-spacing: 0.01em; cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
-    }
-    .btn:hover { transform: translateY(-2px); }
-    .btn-primary {
-      color: #f8f5ee;
-      background: var(--brand);
-      box-shadow: 0 12px 24px rgba(20, 19, 16, 0.12), 0 0 0 6px color-mix(in srgb, var(--accent) 12%, transparent);
-    }
-    .btn-secondary {
-      color: var(--text);
-      background: transparent;
-      border-color: var(--line-strong);
-    }
-    .btn-secondary:hover { background: var(--panel-alt); }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 0.9rem 1.3rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          border-color 0.18s ease,
+          background 0.18s ease,
+          color 0.18s ease;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+      .btn-primary {
+        color: #f8f5ee;
+        background: var(--brand);
+        box-shadow:
+          0 12px 24px rgba(20, 19, 16, 0.12),
+          0 0 0 6px color-mix(in srgb, var(--accent) 12%, transparent);
+      }
+      .btn-secondary {
+        color: var(--text);
+        background: transparent;
+        border-color: var(--line-strong);
+      }
+      .btn-secondary:hover {
+        background: var(--panel-alt);
+      }
 
-    .hero {
-      position: relative;
-      padding: 6.5rem 0 4.5rem;
-      overflow: hidden;
-    }
-    .hero::before {
-      content: "";
-      position: absolute;
-      top: -9rem;
-      right: -5rem;
-      width: 28rem;
-      height: 28rem;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle, color-mix(in srgb, var(--accent-gold) 38%, white 62%) 0%, color-mix(in srgb, var(--accent) 16%, white 84%) 36%, rgba(239, 232, 220, 0) 70%);
-      pointer-events: none;
-      animation: drift 16s ease-in-out infinite;
-    }
-    .hero-grid {
-      position: relative;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 3.5rem;
-      align-items: start;
-    }
-    .eyebrow {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 0.45rem 0.8rem; border-radius: 999px;
-      color: var(--muted); background: rgba(244, 241, 234, 0.72);
-      border: 1px solid var(--line);
-      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    }
-    .eyebrow::before {
-      content: "";
-      width: 0.45rem;
-      height: 0.45rem;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-gold));
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
-      flex: 0 0 auto;
-    }
-    h1 {
-      margin: 1.1rem 0 1.15rem;
-      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-      font-size: clamp(3rem, 5.8vw, 5.2rem);
-      line-height: 0.9;
-      letter-spacing: -0.06em;
-      max-width: 9.8ch;
-      text-wrap: balance;
-    }
-    .accent-word {
-      color: var(--accent-strong);
-      position: relative;
-    }
-    .accent-word::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0.08em;
-      height: 0.18em;
-      background: color-mix(in srgb, var(--accent-gold) 55%, white 45%);
-      z-index: -1;
-      border-radius: 999px;
-    }
-    .hero p {
-      font-size: 1.125rem;
-      color: var(--muted); max-width: 35ch; margin: 0 0 1.9rem;
-    }
-    .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
-    .hero-note {
-      color: var(--muted);
-      font-size: 0.92rem;
-      max-width: 34rem;
-      line-height: 1.7;
-    }
-    .hero-note strong { color: var(--accent-strong); font-weight: 700; }
+      .hero {
+        position: relative;
+        padding: 6.5rem 0 4.5rem;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -9rem;
+        right: -5rem;
+        width: 28rem;
+        height: 28rem;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          color-mix(in srgb, var(--accent-gold) 38%, white 62%) 0%,
+          color-mix(in srgb, var(--accent) 16%, white 84%) 36%,
+          rgba(239, 232, 220, 0) 70%
+        );
+        pointer-events: none;
+        animation: drift 16s ease-in-out infinite;
+      }
+      .hero-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 3.5rem;
+        align-items: start;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        color: var(--muted);
+        background: rgba(244, 241, 234, 0.72);
+        border: 1px solid var(--line);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .eyebrow::before {
+        content: '';
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-gold));
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+        flex: 0 0 auto;
+      }
+      h1 {
+        margin: 1.1rem 0 1.15rem;
+        font-family:
+          'Baskerville', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua',
+          Georgia, serif;
+        font-size: clamp(3rem, 5.8vw, 5.2rem);
+        line-height: 0.9;
+        letter-spacing: -0.06em;
+        max-width: 9.8ch;
+        text-wrap: balance;
+      }
+      .accent-word {
+        color: var(--accent-strong);
+        position: relative;
+      }
+      .accent-word::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0.08em;
+        height: 0.18em;
+        background: color-mix(in srgb, var(--accent-gold) 55%, white 45%);
+        z-index: -1;
+        border-radius: 999px;
+      }
+      .hero p {
+        font-size: 1.125rem;
+        color: var(--muted);
+        max-width: 35ch;
+        margin: 0 0 1.9rem;
+      }
+      .hero-cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      .hero-note {
+        color: var(--muted);
+        font-size: 0.92rem;
+        max-width: 34rem;
+        line-height: 1.7;
+      }
+      .hero-note strong {
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
 
-    .terminal {
-      position: relative;
-      margin-top: 1.25rem;
-      background: color-mix(in srgb, var(--panel-alt) 84%, white 16%);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 22px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-    .terminal::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, color-mix(in srgb, var(--accent-gold) 10%, transparent), transparent 40%, color-mix(in srgb, var(--accent) 9%, transparent));
-      pointer-events: none;
-    }
-    .terminal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .dots { display: flex; gap: 8px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: #d4d1c8; }
-    .dot:first-child { background: color-mix(in srgb, var(--accent) 70%, white 30%); }
-    .dot:nth-child(2) { background: color-mix(in srgb, var(--accent-gold) 76%, white 24%); }
-    .dot:nth-child(3) { background: color-mix(in srgb, var(--accent-forest) 65%, white 35%); }
-    .term-label { color: var(--muted); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; }
-    pre {
-      margin: 0; white-space: pre-wrap; word-break: break-word;
-      font: 500 0.88rem/1.8 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      color: #2d2d2a;
-    }
-    .cmd { color: var(--accent-forest); }
-    .comment { color: #7a786f; }
-    .accent { color: #355f8a; }
-    .warn { color: var(--accent-strong); }
-    .copy-btn {
-      margin-top: 14px; width: 100%; border-radius: 16px;
-      border: 1px solid var(--line); background: rgba(255, 255, 255, 0.86);
-      color: var(--text); padding: 12px 14px; font-weight: 700; cursor: pointer;
-      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-    }
-    .copy-btn:hover {
-      background: #fdfcf9;
-      border-color: color-mix(in srgb, var(--accent) 36%, var(--line));
-      transform: translateY(-1px);
-    }
+      .terminal {
+        position: relative;
+        margin-top: 1.25rem;
+        background: color-mix(in srgb, var(--panel-alt) 84%, white 16%);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .terminal::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--accent-gold) 10%, transparent),
+          transparent 40%,
+          color-mix(in srgb, var(--accent) 9%, transparent)
+        );
+        pointer-events: none;
+      }
+      .terminal-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .dots {
+        display: flex;
+        gap: 8px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #d4d1c8;
+      }
+      .dot:first-child {
+        background: color-mix(in srgb, var(--accent) 70%, white 30%);
+      }
+      .dot:nth-child(2) {
+        background: color-mix(in srgb, var(--accent-gold) 76%, white 24%);
+      }
+      .dot:nth-child(3) {
+        background: color-mix(in srgb, var(--accent-forest) 65%, white 35%);
+      }
+      .term-label {
+        color: var(--muted);
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font:
+          500 0.88rem/1.8 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          monospace;
+        color: #2d2d2a;
+      }
+      .cmd {
+        color: var(--accent-forest);
+      }
+      .comment {
+        color: #7a786f;
+      }
+      .accent {
+        color: #355f8a;
+      }
+      .warn {
+        color: var(--accent-strong);
+      }
+      .copy-btn {
+        margin-top: 14px;
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.86);
+        color: var(--text);
+        padding: 12px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease,
+          background 0.2s ease;
+      }
+      .copy-btn:hover {
+        background: #fdfcf9;
+        border-color: color-mix(in srgb, var(--accent) 36%, var(--line));
+        transform: translateY(-1px);
+      }
 
-    section { padding: 3.25rem 0; }
-    .section-head { margin-bottom: 1.6rem; }
-    .section-head::before {
-      content: "";
-      display: block;
-      width: 3rem;
-      height: 2px;
-      margin-bottom: 0.95rem;
-      background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent-gold) 72%, white 28%));
-      border-radius: 999px;
-    }
-    .section-head h2 {
-      margin: 0 0 0.55rem;
-      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-      font-size: clamp(2.3rem, 4vw, 3.7rem);
-      line-height: 0.96;
-      letter-spacing: -0.05em;
-      max-width: 11ch;
-      text-wrap: balance;
-    }
-    .section-head p { color: var(--muted); margin: 0; max-width: 36rem; font-size: 1rem; }
+      section {
+        padding: 3.25rem 0;
+      }
+      .section-head {
+        margin-bottom: 1.6rem;
+      }
+      .section-head::before {
+        content: '';
+        display: block;
+        width: 3rem;
+        height: 2px;
+        margin-bottom: 0.95rem;
+        background: linear-gradient(
+          90deg,
+          var(--accent),
+          color-mix(in srgb, var(--accent-gold) 72%, white 28%)
+        );
+        border-radius: 999px;
+      }
+      .section-head h2 {
+        margin: 0 0 0.55rem;
+        font-family:
+          'Baskerville', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua',
+          Georgia, serif;
+        font-size: clamp(2.3rem, 4vw, 3.7rem);
+        line-height: 0.96;
+        letter-spacing: -0.05em;
+        max-width: 11ch;
+        text-wrap: balance;
+      }
+      .section-head p {
+        color: var(--muted);
+        margin: 0;
+        max-width: 36rem;
+        font-size: 1rem;
+      }
 
-    .split {
-      display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.9fr); gap: 2.6rem; align-items: start;
-    }
-    .proof-list,
-    .plain-list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 1rem;
-    }
-    .proof-list li,
-    .plain-list li {
-      position: relative;
-      padding: 0 0 1rem 1.05rem;
-      border-bottom: 1px solid var(--line);
-      color: var(--muted);
-      line-height: 1.65;
-    }
-    .proof-list li::before,
-    .plain-list li::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.38rem;
-      width: 0.38rem;
-      height: 0.38rem;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent);
-    }
-    .plain-list li:nth-child(2)::before { background: var(--accent-gold); }
-    .plain-list li:nth-child(3)::before { background: var(--accent-forest); }
-    .proof-list li:last-child,
-    .plain-list li:last-child { border-bottom: 0; padding-bottom: 0; }
-    .proof-list strong,
-    .plain-list strong {
-      display: block;
-      color: var(--text);
-      margin-bottom: 0.22rem;
-      font-size: 0.95rem;
-      letter-spacing: 0.01em;
-    }
-    .plain-list code { color: var(--text); }
-    .codeblock {
-      background: color-mix(in srgb, var(--panel-alt) 88%, white 12%);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 1.1rem 1.15rem;
-      overflow: auto;
-    }
-    #proof .codeblock {
-      background:
-        linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 52%, white 48%), rgba(255,255,255,0.8)),
-        var(--panel);
-      border-color: color-mix(in srgb, var(--accent-gold) 32%, var(--line));
-    }
-    .install { padding: 12px 0 72px; }
-    .install-stack {
-      display: grid;
-      gap: 1rem;
-      max-width: 46rem;
-    }
-    .inline-link {
-      color: var(--accent-strong);
-      text-decoration: underline;
-      text-underline-offset: 0.22em;
-      font-weight: 600;
-    }
-    footer {
-      padding: 18px 0 44px; color: var(--muted); font-size: 14px;
-    }
-    .footer-row {
-      display: flex; justify-content: center; gap: 18px; flex-wrap: wrap;
-      border-top: 1px solid var(--line); padding-top: 18px;
-      text-align: center;
-    }
-    .footer-row a {
-      text-decoration: underline;
-      text-underline-offset: 0.2em;
-      transition: color 0.18s ease;
-    }
-    .footer-row a:hover { color: var(--accent-strong); }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.9fr);
+        gap: 2.6rem;
+        align-items: start;
+      }
+      .proof-list,
+      .plain-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 1rem;
+      }
+      .proof-list li,
+      .plain-list li {
+        position: relative;
+        padding: 0 0 1rem 1.05rem;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        line-height: 1.65;
+      }
+      .proof-list li::before,
+      .plain-list li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.38rem;
+        width: 0.38rem;
+        height: 0.38rem;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent);
+      }
+      .plain-list li:nth-child(2)::before {
+        background: var(--accent-gold);
+      }
+      .plain-list li:nth-child(3)::before {
+        background: var(--accent-forest);
+      }
+      .proof-list li:last-child,
+      .plain-list li:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+      .proof-list strong,
+      .plain-list strong {
+        display: block;
+        color: var(--text);
+        margin-bottom: 0.22rem;
+        font-size: 0.95rem;
+        letter-spacing: 0.01em;
+      }
+      .plain-list code {
+        color: var(--text);
+      }
+      .codeblock {
+        background: color-mix(in srgb, var(--panel-alt) 88%, white 12%);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 1.1rem 1.15rem;
+        overflow: auto;
+      }
+      #how-it-works .codeblock {
+        background:
+          linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--accent-soft) 52%, white 48%),
+            rgba(255, 255, 255, 0.8)
+          ),
+          var(--panel);
+        border-color: color-mix(in srgb, var(--accent-gold) 32%, var(--line));
+      }
+      .install {
+        padding: 12px 0 72px;
+      }
+      .install-stack {
+        display: grid;
+        gap: 1rem;
+        max-width: 46rem;
+      }
+      .inline-link {
+        color: var(--accent-strong);
+        text-decoration: underline;
+        text-underline-offset: 0.22em;
+        font-weight: 600;
+      }
+      footer {
+        padding: 18px 0 44px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .footer-row {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--line);
+        padding-top: 18px;
+        text-align: center;
+      }
+      .footer-row a {
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        transition: color 0.18s ease;
+      }
+      .footer-row a:hover {
+        color: var(--accent-strong);
+      }
 
-    @keyframes fade-up {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes drift {
-      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-      50% { transform: translate3d(-18px, 18px, 0) scale(1.04); }
-    }
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+          transform: translate3d(-18px, 18px, 0) scale(1.04);
+        }
+      }
 
-    @media (prefers-reduced-motion: reduce) {
-      .reveal { opacity: 1; transform: none; animation: none; }
-      .hero::before { animation: none; }
-      .btn, .copy-btn, .footer-row a, .nav-links a::after { transition: none; }
-    }
+      @media (prefers-reduced-motion: reduce) {
+        .reveal {
+          opacity: 1;
+          transform: none;
+          animation: none;
+        }
+        .hero::before {
+          animation: none;
+        }
+        .btn,
+        .copy-btn,
+        .footer-row a,
+        .nav-links a::after {
+          transition: none;
+        }
+      }
 
-    @media (max-width: 980px) {
-      .hero-grid, .split { grid-template-columns: 1fr; }
-      .terminal { max-width: 38rem; }
-    }
-    @media (max-width: 640px) {
-      .container { width: min(var(--max), calc(100% - 28px)); }
-      .hero { padding-top: 4.2rem; }
-      nav { min-height: 64px; }
-      .nav-links { display: none; }
-      .terminal { padding: 18px; }
-      h1 { max-width: 9.5ch; }
-    }
-  </style>
-</head>
-<body>
-  <div class="nav-wrap">
-    <div class="container">
-      <nav>
-        <a class="brand" href="#top" aria-label="Summon home">
-          <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="32" cy="32" r="17.25" stroke="currentColor" stroke-width="2.5"/>
-              <path d="M32 21.5L34.875 29.125L42.5 32L34.875 34.875L32 42.5L29.125 34.875L21.5 32L29.125 29.125L32 21.5Z" fill="currentColor"/>
-              <circle cx="43.75" cy="20.25" r="3" fill="currentColor"/>
-            </svg>
-          </span>
-          <span>Summon</span>
-        </a>
-        <div class="nav-links">
-          <a href="#proof">Proof</a>
-          <a href="#install">Install</a>
-        </div>
-        <a class="btn btn-secondary" href="https://github.com/secondorderai/summon-skill" target="_blank" rel="noreferrer">GitHub</a>
-      </nav>
-    </div>
-  </div>
-
-  <main id="top">
-    <section class="hero">
-      <div class="container hero-grid">
-        <div>
-          <div class="eyebrow reveal">Open source Claude Code skill · MIT licensed</div>
-          <h1 class="reveal delay-1">Summon a <span class="accent-word">self-evolving</span> AI team into your codebase.</h1>
-          <p class="reveal delay-2">
-            Summon reads the repo first, then generates agents that fit the stack you already have.
-          </p>
-          <div class="hero-cta reveal delay-3">
-            <a class="btn btn-primary" href="https://github.com/secondorderai/summon-skill" target="_blank" rel="noreferrer">Open GitHub Repo ↗</a>
-            <a class="btn btn-secondary" href="#proof">See proof</a>
-          </div>
-          <div class="hero-note reveal delay-4">For developers and personal AI-agent users who want <strong>inspectable</strong>, personalized, repo-native output instead of generic prompts.</div>
-        </div>
-
-        <div class="terminal reveal delay-3" aria-label="terminal demo">
-          <div class="terminal-top">
-            <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-            <div class="term-label">summon-demo.sh</div>
-          </div>
-          <pre><span class="comment"># Install the skill</span>
-<span class="cmd">npx skills add secondorderai/summon-skill</span>
-
-<span class="comment"># In your repo</span>
-<span class="cmd">summon a backend engineer for this project</span>
-
-<span class="comment"># Summon scans the codebase and confirms context</span>
-<span class="accent">→ I see Next.js + Prisma + PostgreSQL on Vercel. Right?</span>
-
-<span class="comment"># Then it generates stack-native agents</span>
-<span class="warn">.claude/agents/engineering-backend-engineer.md</span>
-<span class="warn">.claude/agents/quality-code-reviewer.md</span>
-<span class="warn">.claude/evolution/patterns.md</span>
-<span class="warn">.claude/evolution/decisions.md</span></pre>
-          <button class="copy-btn" id="copyInstall">Copy install command</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="proof" class="reveal">
+      @media (max-width: 980px) {
+        .hero-grid,
+        .split {
+          grid-template-columns: 1fr;
+        }
+        .terminal {
+          max-width: 38rem;
+        }
+      }
+      @media (max-width: 640px) {
+        .container {
+          width: min(var(--max), calc(100% - 28px));
+        }
+        .hero {
+          padding-top: 4.2rem;
+        }
+        nav {
+          min-height: 64px;
+        }
+        .nav-links {
+          display: none;
+        }
+        .terminal {
+          padding: 18px;
+        }
+        h1 {
+          max-width: 9.5ch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav-wrap">
       <div class="container">
-        <div class="section-head">
-          <h2>Start from the repo, not the persona.</h2>
-          <p>It detects the stack, asks only for missing context, and writes a self-evolving agent system back into the project.</p>
-        </div>
-        <div class="split">
-          <div>
-            <ul class="proof-list">
-              <li><strong>Detect the stack</strong>Frameworks, ORMs, databases, CI, and deployment clues come from the codebase itself.</li>
-              <li><strong>Ask only what matters</strong>Summon fills the gaps static analysis cannot infer well, then stops.</li>
-              <li><strong>Self-evolving architecture</strong>Agents learn through shared evolution files, so patterns and decisions improve future work instead of disappearing.</li>
-              <li><strong>Write inspectable output</strong>Agents and shared memory live as plain files in the repo.</li>
-            </ul>
+        <nav>
+          <a class="brand" href="#top" aria-label="Summon home">
+            <span class="brand-mark" aria-hidden="true">
+              <svg
+                viewBox="0 0 64 64"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="17.25"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                />
+                <path
+                  d="M32 21.5L34.875 29.125L42.5 32L34.875 34.875L32 42.5L29.125 34.875L21.5 32L29.125 29.125L32 21.5Z"
+                  fill="currentColor"
+                />
+                <circle cx="43.75" cy="20.25" r="3" fill="currentColor" />
+              </svg>
+            </span>
+            <span>Summon</span>
+          </a>
+          <div class="nav-links">
+            <a href="#how-it-works">How it works</a>
+            <a href="#install">Install</a>
           </div>
-          <div class="codeblock">
-<pre>.claude/
+          <a
+            class="btn btn-secondary"
+            href="https://github.com/secondorderai/summon-skill"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub</a
+          >
+        </nav>
+      </div>
+    </div>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <h1 class="reveal delay-1">
+              Summon a <span class="accent-word">self-evolving</span> AI team
+              into your codebase.
+            </h1>
+            <p class="reveal delay-2">
+              Summon reads the repo first, then generates agents that fit the
+              stack you already have.
+            </p>
+            <div class="hero-cta reveal delay-3">
+              <a
+                class="btn btn-primary"
+                href="https://github.com/secondorderai/summon-skill"
+                target="_blank"
+                rel="noreferrer"
+                >Open GitHub Repo ↗</a
+              >
+              <a class="btn btn-secondary" href="#how-it-works">How it works</a>
+            </div>
+            <div class="hero-note reveal delay-4">
+              For developers and personal AI-agent users who want
+              <strong>personalized</strong>, inspectable, repo-native output
+              instead of generic prompts.
+            </div>
+          </div>
+
+          <div class="terminal reveal delay-3" aria-label="terminal demo">
+            <div class="terminal-top">
+              <div class="dots">
+                <span class="dot"></span><span class="dot"></span
+                ><span class="dot"></span>
+              </div>
+            </div>
+            <span class="cmd">npx skills add secondorderai/summon-skill</span>
+            <button class="copy-btn" id="copyInstall">
+              Copy install command
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="reveal">
+        <div class="container">
+          <div class="section-head">
+            <h2>Start from the repo, not the persona.</h2>
+            <p>
+              It detects the stack, asks only for missing context, and writes a
+              self-evolving agent system back into the project.
+            </p>
+          </div>
+          <div class="split">
+            <div>
+              <ul class="proof-list">
+                <li>
+                  <strong>Detect the stack</strong>Frameworks, ORMs, databases,
+                  CI, and deployment clues come from the codebase itself.
+                </li>
+                <li>
+                  <strong>Ask only what matters</strong>Summon fills the gaps
+                  static analysis cannot infer well, then stops.
+                </li>
+                <li>
+                  <strong>Self-evolving architecture</strong>Agents learn
+                  through shared evolution files, so patterns and decisions
+                  improve future work instead of disappearing.
+                </li>
+                <li>
+                  <strong>Write inspectable output</strong>Agents and shared
+                  memory live as plain files in the repo.
+                </li>
+              </ul>
+            </div>
+            <div class="codeblock">
+              <pre>
+.claude/
 ├── agents/
 │   ├── engineering-backend-engineer.md
 │   ├── quality-code-reviewer.md
 │   └── orchestrator.md
 └── evolution/
     ├── patterns.md
-    └── decisions.md</pre>
+    └── decisions.md</pre
+              >
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="install" class="install reveal">
-      <div class="container">
-        <div class="section-head">
-          <h2>Install once. Run it in the repo.</h2>
-          <p>Use the repo if you want the full docs. Use the command below if you already know what you want.</p>
-        </div>
-        <div class="install-stack">
-          <div class="codeblock">
-<pre>npx skills add secondorderai/summon-skill</pre>
-            <button class="copy-btn" id="copyInstallInline">Copy install command</button>
+      <section id="install" class="install reveal">
+        <div class="container">
+          <div class="section-head">
+            <h2>Install once. Run it in the repo.</h2>
+            <p>
+              Use the repo if you want the full docs. Use the command below if
+              you already know what you want.
+            </p>
           </div>
-          <div class="codeblock">
-<pre>summon a backend engineer for this project
+          <div class="install-stack">
+            <div class="codeblock">
+              <pre>npx skills add secondorderai/summon-skill</pre>
+              <button class="copy-btn" id="copyInstallInline">
+                Copy install command
+              </button>
+            </div>
+            <div class="codeblock">
+              <pre>
+summon a backend engineer for this project
 create a security auditor agent
-set up an agent team for this repo</pre>
+set up an agent team for this repo</pre
+              >
+            </div>
+            <ul class="plain-list">
+              <li>
+                <strong>What you get</strong><code>.claude/agents/</code> and
+                <code>.claude/evolution/</code> files you can review and commit.
+              </li>
+              <li>
+                <strong>Who it covers</strong>Backend, frontend, QA, security,
+                architecture, and custom roles from plain language.
+              </li>
+              <li>
+                <strong>Compound Engineering</strong>Each task leaves reusable
+                knowledge behind, so every agent and every future task benefits
+                from previous work.
+              </li>
+              <li>
+                <strong>Why it stays useful</strong>Patterns and decisions
+                accumulate instead of resetting every run.
+              </li>
+            </ul>
+            <div>
+              <a
+                class="inline-link"
+                href="https://github.com/secondorderai/summon-skill"
+                target="_blank"
+                rel="noreferrer"
+                >Read the repo on GitHub</a
+              >
+            </div>
           </div>
-          <ul class="plain-list">
-            <li><strong>What you get</strong><code>.claude/agents/</code> and <code>.claude/evolution/</code> files you can review and commit.</li>
-            <li><strong>Who it covers</strong>Backend, frontend, QA, security, architecture, and custom roles from plain language.</li>
-            <li><strong>Compound Engineering</strong>Each task leaves reusable knowledge behind, so every agent and every future task benefits from previous work.</li>
-            <li><strong>Why it stays useful</strong>Patterns and decisions accumulate instead of resetting every run.</li>
-          </ul>
-          <div><a class="inline-link" href="https://github.com/secondorderai/summon-skill" target="_blank" rel="noreferrer">Read the repo on GitHub</a></div>
         </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-row">
+        <span
+          >Created by
+          <a href="https://x.com/kinwo" target="_blank" rel="noreferrer"
+            >Henry Chan</a
+          ></span
+        >
+        <span
+          ><a
+            href="https://substack.com/@henryckw"
+            target="_blank"
+            rel="noreferrer"
+            >Substack</a
+          ></span
+        >
+        <span
+          ><a href="https://github.com/kinwo" target="_blank" rel="noreferrer"
+            >GitHub</a
+          ></span
+        >
+        <span
+          ><a
+            href="https://www.linkedin.com/in/kinwo/"
+            target="_blank"
+            rel="noreferrer"
+            >LinkedIn</a
+          ></span
+        >
       </div>
-    </section>
-  </main>
+    </footer>
 
-  <footer>
-    <div class="container footer-row">
-      <span>Created by <a href="https://x.com/kinwo" target="_blank" rel="noreferrer">Henry Chan</a></span>
-      <span><a href="https://substack.com/@henryckw" target="_blank" rel="noreferrer">Substack</a></span>
-      <span><a href="https://github.com/kinwo" target="_blank" rel="noreferrer">GitHub</a></span>
-      <span><a href="https://www.linkedin.com/in/kinwo/" target="_blank" rel="noreferrer">LinkedIn</a></span>
-    </div>
-  </footer>
+    <script>
+      const copyButtons = [
+        document.getElementById('copyInstall'),
+        document.getElementById('copyInstallInline'),
+      ].filter(Boolean);
 
-  <script>
-    const copyButtons = [
-      document.getElementById('copyInstall'),
-      document.getElementById('copyInstallInline')
-    ].filter(Boolean);
+      const copyInstall = async (button) => {
+        const text = 'npx skills add secondorderai/summon-skill';
+        try {
+          await navigator.clipboard.writeText(text);
+          const original = button.textContent;
+          button.textContent = 'Copied';
+          setTimeout(() => (button.textContent = original), 1400);
+        } catch (err) {
+          button.textContent = 'Copy failed';
+          setTimeout(() => (button.textContent = 'Copy install command'), 1400);
+        }
+      };
 
-    const copyInstall = async (button) => {
-      const text = 'npx skills add secondorderai/summon-skill';
-      try {
-        await navigator.clipboard.writeText(text);
-        const original = button.textContent;
-        button.textContent = 'Copied';
-        setTimeout(() => button.textContent = original, 1400);
-      } catch (err) {
-        button.textContent = 'Copy failed';
-        setTimeout(() => button.textContent = 'Copy install command', 1400);
-      }
-    };
-
-    copyButtons.forEach((button) => {
-      button.addEventListener('click', () => copyInstall(button));
-    });
-  </script>
-</body>
+      copyButtons.forEach((button) => {
+        button.addEventListener('click', () => copyInstall(button));
+      });
+    </script>
+  </body>
 </html>
