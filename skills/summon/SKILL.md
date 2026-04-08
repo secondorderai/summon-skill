@@ -4,7 +4,7 @@ description: >
   Generate bespoke, stack-aware Claude Code agent files for tech teams. Creates specialized
   AI agent personas (backend, frontend, fullstack, AI/ML, DevOps, QA, security, code reviewer,
   performance engineer, system architect, tech lead) that Claude Code autonomously picks up
-  from `.claude/skills/`. Use this skill whenever the user says things like "create an agent",
+  from `.claude/agents/`. Use this skill whenever the user says things like "create an agent",
   "I need a code reviewer agent", "generate a backend agent for this project", "set up agents
   for my team", "build me a QA specialist", "create a security auditor agent", "I want a tech
   lead agent", "set up an agent team", "create agents for this repo", or any request involving
@@ -18,7 +18,7 @@ description: >
 A skill for generating bespoke, stack-aware Claude Code agent files through a progressive
 interview process. Each generated agent is a specialized AI persona with identity, personality,
 mission, critical rules, concrete code patterns, workflows, and success metrics — designed to
-be autonomously picked up by Claude Code from the project-local `.claude/skills/` directory.
+be autonomously picked up by Claude Code from the project-local `.claude/agents/` directory.
 
 ## Why This Skill Exists
 
@@ -95,7 +95,7 @@ ls -la .github/workflows/ .gitlab-ci.yml 2>/dev/null
 
 # Check for existing conventions
 cat CLAUDE.md .cursorrules .windsurfrules 2>/dev/null | head -50
-ls -la .claude/skills/ 2>/dev/null
+ls -la .claude/agents/ 2>/dev/null
 ```
 
 Present your inferences to the user: "I can see this is a TypeScript/Node.js project using
@@ -186,10 +186,24 @@ If the user provides answers, use them to pre-populate the evolution files durin
 
 ## Agent File Structure
 
-Generate each agent as a single `.md` file placed in `.claude/skills/`. The file follows
+Generate each agent as a single `.md` file placed in `.claude/agents/`. The file follows
 this structure (derived from the agency agents pattern but adapted for Claude Code):
 
 ```markdown
+---
+name: {role-slug}
+description: "{One-line description of what this agent handles — used for task routing}"
+tools:
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+permissionMode: default
+---
+
 # {Role Title}
 
 ## Identity & Context
@@ -238,22 +252,22 @@ This shapes the interaction pattern.}
 ## Evolution
 
 This agent improves over time by reading from and contributing to the team's shared
-knowledge base at `.evolution`.
+knowledge base at `.claude/evolution`.
 
 ### Before Starting Work
 
 Read the relevant evolution files to inform your approach:
 
-- Check `.evolution/patterns.md` — use proven patterns instead of reinventing
-- Check `.evolution/anti-patterns.md` — avoid known failure modes
-- Check `.evolution/decisions.md` — respect prior architectural decisions
-- Check `.evolution/learnings.md` — leverage prior insights relevant to the task
+- Check `.claude/evolution/patterns.md` — use proven patterns instead of reinventing
+- Check `.claude/evolution/anti-patterns.md` — avoid known failure modes
+- Check `.claude/evolution/decisions.md` — respect prior architectural decisions
+- Check `.claude/evolution/learnings.md` — leverage prior insights relevant to the task
 
 ### After Completing Work
 
 When a task is complete (feature shipped, bug fixed, review done), capture what you learned:
 
-1. **If you discovered a reusable pattern**, append to `.evolution/patterns.md`:
+1. **If you discovered a reusable pattern**, append to `.claude/evolution/patterns.md`:
 ```
 
 ### [Date] [Pattern Name] (discovered by {Agent Name})
@@ -264,7 +278,7 @@ When a task is complete (feature shipped, bug fixed, review done), capture what 
 
 ```
 
-2. **If something failed or caused problems**, append to `.evolution/anti-patterns.md`:
+2. **If something failed or caused problems**, append to `.claude/evolution/anti-patterns.md`:
 ```
 
 ### [Date] [Anti-pattern Name] (flagged by {Agent Name})
@@ -275,7 +289,7 @@ When a task is complete (feature shipped, bug fixed, review done), capture what 
 
 ```
 
-3. **If you made a significant decision**, append to `.evolution/decisions.md`:
+3. **If you made a significant decision**, append to `.claude/evolution/decisions.md`:
 ```
 
 ### [Date] [Decision Title] (decided by {Agent Name})
@@ -287,7 +301,7 @@ When a task is complete (feature shipped, bug fixed, review done), capture what 
 
 ```
 
-4. **If you learned something non-obvious**, append to `.evolution/learnings.md`:
+4. **If you learned something non-obvious**, append to `.claude/evolution/learnings.md`:
 ```
 
 ### [Date] [Learning Title] (by {Agent Name})
@@ -367,7 +381,7 @@ After the interview is complete, generate the agent file following these princip
    it defeats the purpose of TypeScript and creates silent runtime failures that are hard
    to trace." Explaining WHY makes the rule stick.
 
-6. **Evolution-ready.** Every agent reads from and contributes to `.evolution`,
+6. **Evolution-ready.** Every agent reads from and contributes to `.claude/evolution`,
    creating a compounding knowledge base. Include the Evolution section in all generated
    agents. The team gets smarter with every task — patterns compound, anti-patterns get
    caught earlier, and architectural decisions accumulate institutional memory.
@@ -381,12 +395,53 @@ After the interview is complete, generate the agent file following these princip
    - Add a "First Steps" workflow section with the 3-5 things to do first
    - Keep rules opinionated but explain trade-offs, since the user hasn't committed yet
 
+### Frontmatter Generation
+
+Every generated agent MUST include YAML frontmatter at the top of the file. The frontmatter
+controls how Claude Code discovers, routes to, and constrains the agent.
+
+```yaml
+---
+name: {category}-{role-slug}
+description: "{One-line description — Claude uses this for task routing, so be specific}"
+tools:
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+permissionMode: default
+---
+```
+
+**Customize `tools` per role to enforce least-privilege:**
+
+- **Engineering roles** (Backend, Frontend, Fullstack, AI/ML, DevOps, Data): full tool access
+  (`Read`, `Edit`, `Write`, `Glob`, `Grep`, `Bash`, `Agent`)
+- **Quality roles** (Code Reviewer): read-heavy with limited writes
+  (`Read`, `Glob`, `Grep`, `Bash`)
+- **Quality roles** (QA Engineer): full access (needs to write tests)
+  (`Read`, `Edit`, `Write`, `Glob`, `Grep`, `Bash`)
+- **Quality roles** (Security Auditor): read-only for analysis
+  (`Read`, `Glob`, `Grep`, `Bash`)
+- **Quality roles** (Performance Engineer): read + execute
+  (`Read`, `Glob`, `Grep`, `Bash`)
+- **Architecture roles** (System Architect, Tech Lead, API Designer): read + write for docs
+  (`Read`, `Edit`, `Write`, `Glob`, `Grep`, `Bash`)
+
+**Customize `permissionMode` per role:**
+
+- `default` — most roles (user approves edits)
+- `plan` — architecture roles (produces plans for user approval before acting)
+
 After generating, write the file:
 
 ```bash
-mkdir -p .claude/skills
+mkdir -p .claude/agents
 # Write the agent file
-cat > .claude/skills/{filename}.md << 'AGENT_EOF'
+cat > .claude/agents/{filename}.md << 'AGENT_EOF'
 {generated content}
 AGENT_EOF
 ```
@@ -396,13 +451,13 @@ AGENT_EOF
 After writing the agent file, initialize the shared evolution directory if it doesn't exist:
 
 ```bash
-mkdir -p .evolution
+mkdir -p .claude/evolution
 for f in learnings.md decisions.md patterns.md anti-patterns.md; do
-  if [ ! -f ".evolution/$f" ]; then
-    echo "# Team ${f%.md}" > ".evolution/$f"
-    echo "" >> ".evolution/$f"
-    echo "Shared knowledge base maintained by all agents. Newest entries at the bottom." >> ".evolution/$f"
-    echo "" >> ".evolution/$f"
+  if [ ! -f ".claude/evolution/$f" ]; then
+    echo "# Team ${f%.md}" > ".claude/evolution/$f"
+    echo "" >> ".claude/evolution/$f"
+    echo "Shared knowledge base maintained by all agents. Newest entries at the bottom." >> ".claude/evolution/$f"
+    echo "" >> ".claude/evolution/$f"
   fi
 done
 ```
@@ -411,8 +466,8 @@ If the user provided answers to the Evolution & Learning Questions during the in
 pre-populate the relevant evolution files with those initial entries (using today's date and
 attributing to "Team Setup").
 
-Then confirm to the user: "Created `.claude/skills/{filename}.md` with evolution support.
-The team's shared knowledge base is at `.evolution`. Claude Code will automatically
+Then confirm to the user: "Created `.claude/agents/{filename}.md` with evolution support.
+The team's shared knowledge base is at `.claude/evolution`. Claude Code will automatically
 pick up this agent in new sessions. Want to generate another agent or create a team?"
 
 ## Multi-Agent Composition
@@ -423,7 +478,7 @@ full interview for each, but reuse stack context), then generate an orchestrator
 ### The Orchestrator Agent
 
 The orchestrator is a special agent that coordinates the others. It lives at
-`.claude/skills/orchestrator.md` and:
+`.claude/agents/orchestrator.md` and:
 
 1. **Knows the roster** — Lists all available agents with their specialties
 2. **Routes tasks** — Given a task, recommends which agent(s) to activate
@@ -436,7 +491,7 @@ The orchestrator is a special agent that coordinates the others. It lives at
 When generating a multi-agent team, ask the user:
 
 - **Do you want agents to learn and evolve from their work?** (explain: "Agents will
-  maintain a shared knowledge base at `.evolution` — patterns that work, mistakes
+  maintain a shared knowledge base at `.claude/evolution` — patterns that work, mistakes
   to avoid, and architectural decisions. Each agent reads from and contributes to this
   knowledge base, so the team gets smarter over time.")
 - If yes (default), include the Evolution section in all generated agents
@@ -445,6 +500,18 @@ When generating a multi-agent team, ask the user:
 Generate the orchestrator after all individual agents are created. Its structure:
 
 ```markdown
+---
+name: orchestrator
+description: "Coordinates specialized agents — routes tasks, defines workflows, manages handoffs and conflict resolution"
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+permissionMode: plan
+---
+
 # Team Orchestrator
 
 ## Identity & Context
@@ -480,7 +547,7 @@ unless explicitly time-boxed by the user"}
 
 ## Evolution Coordination
 
-The team maintains shared knowledge at `.evolution`. As orchestrator:
+The team maintains shared knowledge at `.claude/evolution`. As orchestrator:
 
 - Before routing complex tasks, remind the target agent to check evolution files
 - Periodically summarize evolution state (entry counts, key themes, pending feedback loops)
@@ -490,8 +557,8 @@ The team maintains shared knowledge at `.evolution`. As orchestrator:
 
 ## Important Reminders
 
-- Always write to `.claude/skills/` in the project root, never to `~/.claude/skills/`
-- Each agent is a standalone `.md` file — no YAML frontmatter needed for Claude Code agents
+- Always write to `.claude/agents/` in the project root, never to `~/.claude/agents/`
+- Each agent is a standalone `.md` file with YAML frontmatter (name, description, tools, permissionMode)
 - Keep agents under 300 lines — if they're getting longer, the scope is too broad
 - The interview is a conversation, not a form. Adapt to what the user tells you.
 - If the user says "just make me a code reviewer", don't ask 20 questions. Infer from

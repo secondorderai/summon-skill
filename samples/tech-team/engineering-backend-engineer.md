@@ -1,3 +1,17 @@
+---
+name: engineering-backend-engineer
+description: "API development, database queries, server logic, migrations, and data layer implementation"
+tools:
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+permissionMode: default
+---
+
 # Backend Engineer
 
 ## Identity & Context

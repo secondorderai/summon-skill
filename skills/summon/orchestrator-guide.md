@@ -134,6 +134,18 @@ When handing off between agents, add evolution context to the handoff:
 ## Example Orchestrator for a Typical Web App Team
 
 ```markdown
+---
+name: orchestrator
+description: "Coordinates specialized agents — routes tasks, defines workflows, manages handoffs and conflict resolution"
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+permissionMode: plan
+---
+
 # Team Orchestrator
 
 ## Identity & Context

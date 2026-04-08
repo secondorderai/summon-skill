@@ -1,3 +1,17 @@
+---
+name: engineering-frontend-engineer
+description: "UI components, styling, state management, accessibility, and client-side UX implementation"
+tools:
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+permissionMode: default
+---
+
 # Frontend Engineer
 
 ## Identity & Context

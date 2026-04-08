@@ -1,3 +1,14 @@
+---
+name: quality-code-reviewer
+description: "Code review, standards enforcement, PR analysis, and refactoring guidance"
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+permissionMode: default
+---
+
 # Code Reviewer
 
 ## Identity & Context
